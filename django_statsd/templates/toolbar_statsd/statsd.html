@@ -1,0 +1,45 @@
+<table id="statsd"
+  data-graphite="{{ graphite }}"
+  data-roots="{% for root in roots %}{{ root }}{% if not forloop.last %}|{% endif %}{% endfor %}">
+  <thead>
+    <tr>
+      <th>Stat</th>
+      <th>Value</th>
+      <th>Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for record in statsd %}
+    <tr>
+      <td><a href="#" class="statsd" data-key="{{ record.0 }}">{{ record.0 }}</a></td>
+      <td>{{ record.1 }}</td>
+      <td>{{ record.2 }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div id="graphs" img="graphite?width=586&amp;height=308&amp;target=root.key.lower&amp;target=root.key.mean&amp;target=root.key.upper_90&amp;target=scale(root.key.count,0.1)&amp;from=-24hours&amp;title=24 hours" />
+
+<script type="text/javascript">
+  // TODO: inlining is bad, this should be external.
+
+$(document).ready(function() {
+    var graphite = $('#statsd').attr('data-graphite'),
+        roots = $('#statsd').attr('data-roots').split('|'),
+        target = $('#graphs'),
+        img = target.attr('img');
+
+    $('a.statsd').click(function() {
+        var that = $(this);
+        target.html('');
+        $.each(roots, function(root) {
+            var custom = img.replace('graphite', graphite, 'g')
+                            .replace('root', roots[root], 'g')
+                            .replace('key', that.attr('data-key'), 'g');
+            target.append('<p><b>' + roots[root] + '.' + that.attr('data-key') + '</b></p><img src="' + custom + '">');
+        })
+    });
+})
+</script>
+
