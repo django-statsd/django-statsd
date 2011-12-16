@@ -4,23 +4,23 @@ Credits:
 
 Settings:
 
-Adding in the middleware.
+Adding in the middleware::
 
-MIDDLEWARE_CLASSES = (
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
-    'django_statsd.middleware.GraphiteRequestTimingMiddleware',
-    'django_statsd.middleware.GraphiteMiddleware',
-    ) + MIDDLEWARE_CLASSES
+        MIDDLEWARE_CLASSES = (
+                'debug_toolbar.middleware.DebugToolbarMiddleware',
+                'django_statsd.middleware.GraphiteRequestTimingMiddleware',
+                'django_statsd.middleware.GraphiteMiddleware',
+                ) + MIDDLEWARE_CLASSES
 
 
 Add in the panel, you must remove the SQL panel (hopefully this will get
-fixed).
+fixed)::
 
-DEBUG_TOOLBAR_PANELS = (
-...
-#    'debug_toolbar.panels.sql.SQLDebugPanel',
-    'django_statsd.panel.StatsdPanel',
-)
+        DEBUG_TOOLBAR_PANELS = (
+        ...
+        #    'debug_toolbar.panels.sql.SQLDebugPanel',
+             'django_statsd.panel.StatsdPanel',
+        )
 
 Pick your client, one of:
 
@@ -28,23 +28,25 @@ Pick your client, one of:
 - django_statsd.clients.toolbar  (use for the toolbar)
 - django_statsd.clients.statsd  (use for production)
 
-STATSD_CLIENT = 'django_statsd.clients.toolbar'
+For the toolbar::
 
-Pick your patches:
+        STATSD_CLIENT = 'django_statsd.clients.toolbar'
 
-STATSD_PATCHES = [
-    'django_statsd.patches.db',
-    'django_statsd.patches.cache',
-]
+Pick your patches::
 
-Configure where the toolbar shows graphs:
+        STATSD_PATCHES = [
+                'django_statsd.patches.db',
+                'django_statsd.patches.cache',
+        ]
 
-TOOLBAR_STATSD = {
-    'graphite': 'https://graphite-phx.mozilla.org/render/',
-    'roots': {
-        'timers': ['stats.timers.addons-dev', 'stats.timers.addons'],
-        'counts': ['stats.addons-dev', 'stats.addons']
-    }
-}
+Configure where the toolbar shows graphs::
+
+        TOOLBAR_STATSD = {
+                'graphite': 'https://graphite-phx.mozilla.org/render/',
+                'roots': {
+                'timers': ['stats.timers.addons-dev', 'stats.timers.addons'],
+                 'counts': ['stats.addons-dev', 'stats.addons']
+                }
+        }
 
 Phew.
