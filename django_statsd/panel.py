@@ -14,7 +14,11 @@ class StatsdPanel(DebugPanel):
     def __init__(self, *args, **kw):
         super(StatsdPanel, self).__init__(*args, **kw)
         self.statsd = statsd
-        self.statsd.reset()
+        try:
+            self.statsd.reset()
+        except AttributeError:
+            raise ValueError('To use the toolbar, your STATSD_CLIENT must'
+                             'be set to django_statsd.clients.toolbar')
 
     def nav_title(self):
         return _('Statsd')
@@ -31,7 +35,11 @@ class StatsdPanel(DebugPanel):
 
     def content(self):
         context = self.context.copy()
-        context.update(settings.TOOLBAR_STATSD)
+        config = getattr(settings, 'TOOLBAR_STATSD', {})
+        if 'roots' in config:
+            for key in ['timers', 'counts']:
+                context[key] = config['roots'][key]
+        context['graphite'] = config.get('graphite')
         context['statsd'] = self.statsd.cache
         return render_to_string('toolbar_statsd/statsd.html', context)
 

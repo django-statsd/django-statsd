@@ -3,6 +3,7 @@ from django.conf import settings
 
 _statsd = None
 
+
 def get_client():
     client = getattr(settings, 'STATSD_CLIENT', 'statsd.client')
     host = getattr(settings, 'STATSD_HOST', 'localhost')
@@ -10,5 +11,8 @@ def get_client():
     prefix = getattr(settings, 'STATSD_PREFIX', None)
     return import_module(client).StatsClient(host, port, prefix)
 
-statsd = get_client()
+if not _statsd:
+    _statsd = get_client()
+
+statsd = _statsd
 

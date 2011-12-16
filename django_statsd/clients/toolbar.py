@@ -1,5 +1,4 @@
 from statsd.client import StatsClient
-from django.contrib.humanize.templatetags.humanize import intcomma
 
 
 class StatsClient(StatsClient):
@@ -13,6 +12,7 @@ class StatsClient(StatsClient):
         self.cache = []
 
     def _send(self, stat, value, rate):
-        num, scale = value.split('|')
-        value = '%s%s' % (intcomma(int(num)), scale)
-        self.cache.append([stat, value, rate])
+        type_ = 'timer'
+        if value.split('|')[1] == 'c':
+            type_ = 'count'
+        self.cache.append([stat, value, rate, type_])
