@@ -1,50 +1,50 @@
-Todo: write this
+Credits:
+- jbalogh and jsocol for statsd and commonware.
+- robhudson for django-debug-toolbar
+
+Settings:
+
+Adding in the middleware.
+
+MIDDLEWARE_CLASSES = (
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'django_statsd.middleware.GraphiteRequestTimingMiddleware',
+    'django_statsd.middleware.GraphiteMiddleware',
+    ) + MIDDLEWARE_CLASSES
 
 
+Add in the panel, you must remove the SQL panel (hopefully this will get
+fixed).
 
-A tool that mashes up django-debug-toolbar, graphite, statsd and pystatsd.
+DEBUG_TOOLBAR_PANELS = (
+...
+#    'debug_toolbar.panels.sql.SQLDebugPanel',
+    'django_statsd.panel.StatsdPanel',
+)
 
-Before you can think about getting this to work you'll need:
+Pick your client, one of:
 
-- A graphite server running and processing the data from statsd
+- django_statsd.clients.null  (does nothing)
+- django_statsd.clients.toolbar  (use for the toolbar)
+- django_statsd.clients.statsd  (use for production)
 
-- Some Django middleware or code that sends the data to statsd
+STATSD_CLIENT = 'django_statsd.clients.toolbar'
 
-Pystatsd: https://github.com/andymckay/pystatsd
+Pick your patches:
 
-Graphite: http://graphite.wikidot.com/installation
+STATSD_PATCHES = [
+    'django_statsd.patches.db',
+    'django_statsd.patches.cache',
+]
 
-Django debug toolbar: https://github.com/django-debug-toolbar/django-debug-toolbar
+Configure where the toolbar shows graphs:
 
-An example Django app that logs to statsd on each request can be found in
-nuggets: https://github.com/mozilla/nuggets
-
-It works by adding the following to your middleware::
-
-    MIDDLEWARE_CLASSES = (
-        'commonware.response.middleware.GraphiteRequestTimingMiddleware',
-        'commonware.response.middleware.GraphiteMiddleware',
-    )
-
-If you've got that setup, to your settings, add the following::
-
-    DEBUG_TOOLBAR_PANELS = (
-        ...
-        'toolbar_statsd.panel.StatsdPanel'
-    )
-
-    STATSD_CLIENT = 'toolbar_statsd.panel'
-
-    TOOLBAR_STATSD = {
-        'graphite': 'http://your.graphite.server',
-        'roots': ['root.key.for.dev', 'root.key.for.stage']
+TOOLBAR_STATSD = {
+    'graphite': 'https://graphite-phx.mozilla.org/render/',
+    'roots': {
+        'timers': ['stats.timers.addons-dev', 'stats.timers.addons'],
+        'counts': ['stats.addons-dev', 'stats.addons']
     }
+}
 
-    INSTALLED_APPS = (
-        ...
-        'toolbar_statsd'
-    )
-
-Notes: django-debug-toolbar middleware must come *after* graphite middleware.
-
-See: example.png for an example of the fun that can be had.
+Phew.
