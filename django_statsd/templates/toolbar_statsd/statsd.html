@@ -5,16 +5,26 @@
   <thead>
     <tr>
       <th>Stat</th>
-      <th>Value</th>
+      <th>Total</th>
       <th>Count</th>
+      <th>Values</th>
     </tr>
   </thead>
   <tbody>
     {% for record in statsd %}
     <tr>
-      <td><a href="#" class="statsd" data-key="{{ record.0 }}" data-type="{{ record.3 }}">{{ record.0 }}</a></td>
-      <td>{{ record.1 }}</td>
-      <td>{{ record.2 }}</td>
+      <td><a href="#" class="statsd" data-key="{{ record.name }}" data-type="{{ record.type }}">{{ record.name }}</a></td>
+      <td>{{ record.total }}{% if record.type == 'timing' %}ms{% endif %}</td>
+      <td>{{ record.count }}</td>
+      <td>
+        {% if record.count > 1 %}
+          <span class="values" data-count="{{ record.count }}">
+            {% for value in record.values %}
+              {{ value.0 }}{% if record.type == 'timing' %}ms{% endif %}|{{ value.1 }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+          </span>
+        {% endif %}
+      </td>
     </tr>
     {% endfor %}
   </tbody>

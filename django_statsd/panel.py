@@ -3,8 +3,22 @@ from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _, ungettext
 
 from debug_toolbar.panels import DebugPanel
-from django_statsd.statsd import statsd
+from django_statsd.clients import statsd
 
+
+def munge(stats):
+    # Munge the stats back into something easy for a template.
+    results = []
+    for stat in sorted(stats.keys()):
+        values = stats[stat]
+        name, type_ = stat.split('|')
+        total = sum([x * y for x, y in values])
+        data = {'name': name, 'type': type_,
+                'count': len(values),
+                'total': total,
+                'values': values}
+        results.append(data)
+    return results
 
 class StatsdPanel(DebugPanel):
 
@@ -40,7 +54,7 @@ class StatsdPanel(DebugPanel):
             for key in ['timers', 'counts']:
                 context[key] = config['roots'][key]
         context['graphite'] = config.get('graphite')
-        context['statsd'] = self.statsd.cache
+        context['statsd'] = munge(self.statsd.cache)
         return render_to_string('toolbar_statsd/statsd.html', context)
 
 

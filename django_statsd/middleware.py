@@ -1,4 +1,4 @@
-from django_statsd import statsd
+from django_statsd.clients import statsd
 import inspect
 import time
 
