@@ -1,20 +1,22 @@
 import os
 from setuptools import setup, find_packages
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name='django-statsd',
+    # Because django-statsd was taken, I called this django-statsd-mozilla.
+    name='django-statsd-mozilla',
     version='0.1',
     description='',
-    long_description=read('README.rst'),
+    long_description=open('README.rst').read(),
     author='Andy McKay',
     author_email='andym@mozilla.com',
     license='BSD',
-    packages=['django_statsd'],
-    url='',
-    package_data = {'django_statsd': ['templates/django_statsd/*.html']},
+    packages=['django_statsd',
+              'django_statsd/patches',
+              'django_statsd/clients'],
+    url='https://github.com/andymckay/django-statsd',
+    include_package_data=True,
+    zip_safe=False,
     classifiers=[
         'Intended Audience :: Developers',
         'Natural Language :: English',

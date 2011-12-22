@@ -10,6 +10,15 @@ Credits:
   of and put in here.
 - robhudson for django-debug-toolbar
 
+Installation
+------------
+
+From pypi::
+
+        pip install django-statsd-mozilla
+
+Because there is already a django-statsd on pypi.
+
 Requirement, pystatsd:
 
 https://github.com/jsocol/pystatsd
