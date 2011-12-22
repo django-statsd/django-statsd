@@ -1,3 +1,5 @@
 BSD and MPL
 
-Todo: portions of this is from commonware
+Portions of this are from commonware:
+
+https://github.com/jsocol/commonware/blob/master/LICENSE
