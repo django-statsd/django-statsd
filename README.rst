@@ -35,7 +35,7 @@ First off, pick your client, one of:
   Use for the django debug toolbar, stores all the statsd pings on the request
   so they can be used in the toolbar.
 
-- django_statsd.clients.statsd
+- django_statsd.clients.normal
 
   Use this for production, it just passes through to the real actual pystatsd.
 
