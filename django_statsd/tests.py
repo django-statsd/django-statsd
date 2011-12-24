@@ -1,13 +1,16 @@
 from django.conf import settings
-from django.http import HttpResponse
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse, HttpResponseForbidden
+from django.test.client import Client
 from django.test.client import RequestFactory
+from django.utils import unittest
 
 import mock
+import sys
 from nose.tools import eq_
 
-from django_statsd import statsd, get_client, middleware
-
-import unittest
+from django_statsd.clients import get_client
+from django_statsd import middleware
 
 
 @mock.patch.object(middleware.statsd, 'incr')
@@ -94,11 +97,44 @@ class TestClient(unittest.TestCase):
                        'django_statsd.clients.toolbar')
     def test_toolbar_send(self):
         client = get_client()
-        eq_(client.cache, [])
+        eq_(client.cache, {})
         client.incr('testing')
-        eq_(client.cache, [['testing', u'1c', 1]])
+        eq_(client.cache, {'testing|count': [[1, 1]]})
 
 
+class TestRecord(unittest.TestCase):
 
+    def setUp(self):
+        settings.STATSD_RECORD_GUARD = None
+        self.url = reverse('django_statsd.record')
+        self.client = Client()
+        self.good =  {'client': 'boomerang', 'nt_nav_st': 1,
+                      'nt_domcomp': 3}
 
+    def test_no_client(self):
+        self.assertRaises(ValueError, self.client.get, self.url)
+
+    def test_no_valid_client(self):
+        self.assertRaises(ValueError, self.client.get, self.url,
+                          {'client': 'noo!'})
+
+    def test_boomerang_almost(self):
+        self.assertRaises(ValueError, self.client.get, self.url,
+                          {'client': 'boomerang'})
+
+    def test_boomerang_minimum(self):
+        self.client.get(self.url, {'client': 'boomerang', 'nt_nav_st': 1})
+
+    def test_boomerang_something(self):
+        self.client.get(self.url, self.good)
+        # TODO: figure out how to test this properly, that something
+        # got written which isn't that easy.
+
+    def test_good_guard(self):
+        settings.STATSD_RECORD_GUARD = lambda r: None
+        self.client.get(self.url, self.good)
+
+    def test_bad_guard(self):
+        settings.STATSD_RECORD_GUARD = lambda r: HttpResponseForbidden()
+        assert self.client.get(self.url, self.good).status_code == 403
 
