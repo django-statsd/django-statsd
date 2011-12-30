@@ -17,7 +17,7 @@ exports.send = function(url) {
             'window.performance.timing.domLoading': perf.timing.domLoading,
             'window.performance.navigation.redirectCount': perf.navigation.redirectCount,
             'window.performance.navigation.type': perf.navigation.type,
-            'client': 'stick',
+            'client': 'stick'
         });
     }
 };
