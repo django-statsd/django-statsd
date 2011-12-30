@@ -42,6 +42,19 @@ keys = [
  'window.performance.navigation.type',
 ]
 
+
+def process_key(start, key, value):
+    if 'timing' in key:
+        # Some values will be zero. We want the output of that to
+        # be zero relative to start.
+        value = max(start, int(value)) - start
+        statsd.timing(key, value)
+    elif key == 'window.performance.navigation.type':
+        statsd.incr('%s.%s' % (key, types[value]))
+    elif key == 'window.performance.navigation.redirectCount':
+        statsd.incr(key, int(value))
+
+
 def _process_boomerang(request):
     if 'nt_nav_st' not in request.GET:
         raise ValueError, ('nt_nav_st not in request.GET, make sure boomerang'
@@ -57,21 +70,19 @@ def _process_boomerang(request):
         if not v or v == 'undefined':
             continue
         if k in boomerang:
-            if 'timing' in k:
-                # Some values will be zero. We want the output of that to
-                # be zero relative to start.
-                v = max(start, int(v)) - start
-                statsd.timing(k, v)
-            elif k == 'window.performance.navigation.type':
-                statsd.incr('%s.%s' % (k, types[v]))
-            elif k == 'window.performance.navigation.redirectCount':
-                statsd.incr(k, int(v))
+            process_key(start, k, v)
 
-    return http.HttpResponse('recorded')
+
+def _process_stick(request):
+    start = int(request.POST['window.performance.timing.navigationStart'])
+
+    for k in getattr(settings, 'STATSD_RECORD_KEYS', keys):
+        process_key(start, k, request.POST[k])
 
 
 clients = {
  'boomerang': _process_boomerang,
+ 'stick': _process_stick,
 }
 
 
@@ -101,4 +112,5 @@ def record(request):
         if result:
             return result
 
-    return clients[client](request)
+    clients[client](request)
+    return http.HttpResponse('recorded')
