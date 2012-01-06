@@ -1,12 +1,11 @@
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseForbidden
-from django.test.client import Client
+from django.test import TestCase
 from django.test.client import RequestFactory
 from django.utils import unittest
 
 import mock
-import sys
 from nose.tools import eq_
 
 from django_statsd.clients import get_client
@@ -14,7 +13,7 @@ from django_statsd import middleware
 
 
 @mock.patch.object(middleware.statsd, 'incr')
-class TestIncr(unittest.TestCase):
+class TestIncr(TestCase):
 
     def setUp(self):
         self.req = RequestFactory().get('/')
@@ -102,39 +101,89 @@ class TestClient(unittest.TestCase):
         eq_(client.cache, {'testing|count': [[1, 1]]})
 
 
-class TestRecord(unittest.TestCase):
+# This is primarily for Zamboni, which loads in the custom middleware
+# classes, one of which, breaks posts to our url. Let's stop that.
+@mock.patch_object(settings, 'MIDDLEWARE_CLASSES', [])
+class TestRecord(TestCase):
+
+    urls = 'django_statsd.urls'
 
     def setUp(self):
-        settings.STATSD_RECORD_GUARD = None
+        super(TestRecord, self).setUp()
         self.url = reverse('django_statsd.record')
-        self.client = Client()
-        self.good =  {'client': 'boomerang', 'nt_nav_st': 1,
+        settings.STATSD_RECORD_GUARD = None
+        self.good = {'client': 'boomerang', 'nt_nav_st': 1,
                       'nt_domcomp': 3}
+        self.stick = {'client': 'stick',
+                      'window.performance.timing.domComplete': 123,
+                      'window.performance.timing.domInteractive': 456,
+                      'window.performance.timing.domLoading': 789,
+                      'window.performance.timing.navigationStart': 0,
+                      'window.performance.navigation.redirectCount': 3,
+                      'window.performance.navigation.type': 1}
 
     def test_no_client(self):
-        self.assertRaises(ValueError, self.client.get, self.url)
+        assert self.client.get(self.url).status_code == 400
 
     def test_no_valid_client(self):
-        self.assertRaises(ValueError, self.client.get, self.url,
-                          {'client': 'noo!'})
+        assert self.client.get(self.url, {'client': 'no'}).status_code == 400
 
     def test_boomerang_almost(self):
-        self.assertRaises(ValueError, self.client.get, self.url,
-                          {'client': 'boomerang'})
+        assert self.client.get(self.url,
+                               {'client': 'boomerang'}).status_code == 400
 
     def test_boomerang_minimum(self):
-        self.client.get(self.url, {'client': 'boomerang', 'nt_nav_st': 1})
+        assert self.client.get(self.url,
+                               {'client': 'boomerang',
+                                'nt_nav_st': 1}).content == 'recorded'
 
-    def test_boomerang_something(self):
-        self.client.get(self.url, self.good)
-        # TODO: figure out how to test this properly, that something
-        # got written which isn't that easy.
+    @mock.patch('django_statsd.views.process_key')
+    def test_boomerang_something(self, process_key):
+        assert self.client.get(self.url, self.good).content == 'recorded'
+        assert process_key.called
+
+    def test_boomerang_post(self):
+        assert self.client.post(self.url, self.good).status_code == 405
 
     def test_good_guard(self):
         settings.STATSD_RECORD_GUARD = lambda r: None
-        self.client.get(self.url, self.good)
+        assert self.client.get(self.url, self.good).status_code == 200
 
     def test_bad_guard(self):
         settings.STATSD_RECORD_GUARD = lambda r: HttpResponseForbidden()
         assert self.client.get(self.url, self.good).status_code == 403
 
+    def test_stick_get(self):
+        assert self.client.get(self.url, self.stick).status_code == 405
+
+    @mock.patch('django_statsd.views.process_key')
+    def test_stick(self, process_key):
+        assert self.client.post(self.url, self.stick).status_code == 200
+        assert process_key.called
+
+    def test_stick_start(self):
+        data = self.stick.copy()
+        del data['window.performance.timing.navigationStart']
+        assert self.client.post(self.url, data).status_code == 400
+
+    @mock.patch('django_statsd.views.process_key')
+    def test_stick_missing(self, process_key):
+        data = self.stick.copy()
+        del data['window.performance.timing.domInteractive']
+        assert self.client.post(self.url, data).status_code == 200
+        assert process_key.called
+
+    def test_stick_garbage(self):
+        data = self.stick.copy()
+        data['window.performance.timing.domInteractive'] = '<alert>'
+        assert self.client.post(self.url, data).status_code == 400
+
+    def test_stick_some_garbage(self):
+        data = self.stick.copy()
+        data['window.performance.navigation.redirectCount'] = '<alert>'
+        assert self.client.post(self.url, data).status_code == 400
+
+    def test_stick_more_garbage(self):
+        data = self.stick.copy()
+        data['window.performance.navigation.type'] = '<alert>'
+        assert self.client.post(self.url, data).status_code == 400

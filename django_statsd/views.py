@@ -1,5 +1,7 @@
 from django import http
 from django.conf import settings
+from django.views.decorators.http import require_http_methods
+
 from django_statsd.clients import statsd
 
 boomerang ={
@@ -55,6 +57,7 @@ def process_key(start, key, value):
         statsd.incr(key, int(value))
 
 
+@require_http_methods(['GET', 'HEAD'])
 def _process_boomerang(request):
     if 'nt_nav_st' not in request.GET:
         raise ValueError, ('nt_nav_st not in request.GET, make sure boomerang'
@@ -73,11 +76,16 @@ def _process_boomerang(request):
             process_key(start, k, v)
 
 
+@require_http_methods(['POST'])
 def _process_stick(request):
+    if 'window.performance.timing.navigationStart' not in request.POST:
+        return http.HttpResponseBadRequest()
+
     start = int(request.POST['window.performance.timing.navigationStart'])
 
     for k in getattr(settings, 'STATSD_RECORD_KEYS', keys):
-        process_key(start, k, request.POST[k])
+        if k in request.POST:
+            process_key(start, k, request.POST[k])
 
 
 clients = {
@@ -98,11 +106,11 @@ def record(request):
     can post to it.
     """
     if 'client' not in request.REQUEST:
-        raise ValueError, 'No client specified in the REQUEST.'
+        return http.HttpResponseBadRequest()
+
     client = request.REQUEST['client']
     if client not in clients:
-        raise ValueError, 'Client %s not known.' % client
-
+        return http.HttpResponseBadRequest()
 
     guard = getattr(settings, 'STATSD_RECORD_GUARD', None)
     if guard:
@@ -112,5 +120,11 @@ def record(request):
         if result:
             return result
 
-    clients[client](request)
+    try:
+        response = clients[client](request)
+    except (ValueError, KeyError):
+        return http.HttpResponseBadRequest()
+
+    if response:
+        return response
     return http.HttpResponse('recorded')
