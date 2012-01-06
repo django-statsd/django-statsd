@@ -19,9 +19,12 @@ From pypi::
 
 Because there is already a django-statsd on pypi.
 
-Requirement, pystatsd:
+Requirement, https://github.com/jsocol/pystatsd or::
 
-https://github.com/jsocol/pystatsd
+        pip install statsd
+
+Because there is already a pystatsd on pypi. This will be automatically added
+when you install django-statsd-mozilla.
 
 First off, pick your client, one of:
 

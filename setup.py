@@ -5,12 +5,13 @@ from setuptools import setup
 setup(
     # Because django-statsd was taken, I called this django-statsd-mozilla.
     name='django-statsd-mozilla',
-    version='0.2.1',
+    version='0.2.2',
     description='Django interface with statsd',
     long_description=open('README.rst').read(),
     author='Andy McKay',
     author_email='andym@mozilla.com',
     license='BSD',
+    install_requires=['statsd'],
     packages=['django_statsd',
               'django_statsd/patches',
               'django_statsd/clients'],
