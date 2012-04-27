@@ -1,3 +1,7 @@
+import dictconfig
+import logging
+import sys
+
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseForbidden
@@ -7,9 +11,23 @@ from django.utils import unittest
 
 import mock
 from nose.tools import eq_
-
 from django_statsd.clients import get_client
 from django_statsd import middleware
+
+cfg = {
+    'version': 1,
+    'formatters': {},
+    'handlers': {
+        'test_statsd_handler': {
+            'class': 'django_statsd.loggers.errors.StatsdHandler',
+        },
+    },
+    'loggers': {
+        'test.logging': {
+            'handlers': ['test_statsd_handler'],
+        },
+    },
+}
 
 
 @mock.patch.object(middleware.statsd, 'incr')
@@ -78,21 +96,21 @@ class TestTiming(unittest.TestCase):
 
 class TestClient(unittest.TestCase):
 
-    @mock.patch_object(settings, 'STATSD_CLIENT', 'statsd.client')
+    @mock.patch.object(settings, 'STATSD_CLIENT', 'statsd.client')
     def test_normal(self):
         eq_(get_client().__module__, 'statsd.client')
 
-    @mock.patch_object(settings, 'STATSD_CLIENT',
+    @mock.patch.object(settings, 'STATSD_CLIENT',
                        'django_statsd.clients.null')
     def test_null(self):
         eq_(get_client().__module__, 'django_statsd.clients.null')
 
-    @mock.patch_object(settings, 'STATSD_CLIENT',
+    @mock.patch.object(settings, 'STATSD_CLIENT',
                        'django_statsd.clients.toolbar')
     def test_toolbar(self):
         eq_(get_client().__module__, 'django_statsd.clients.toolbar')
 
-    @mock.patch_object(settings, 'STATSD_CLIENT',
+    @mock.patch.object(settings, 'STATSD_CLIENT',
                        'django_statsd.clients.toolbar')
     def test_toolbar_send(self):
         client = get_client()
@@ -103,7 +121,7 @@ class TestClient(unittest.TestCase):
 
 # This is primarily for Zamboni, which loads in the custom middleware
 # classes, one of which, breaks posts to our url. Let's stop that.
-@mock.patch_object(settings, 'MIDDLEWARE_CLASSES', [])
+@mock.patch.object(settings, 'MIDDLEWARE_CLASSES', [])
 class TestRecord(TestCase):
 
     urls = 'django_statsd.urls'
@@ -187,3 +205,25 @@ class TestRecord(TestCase):
         data = self.stick.copy()
         data['window.performance.navigation.type'] = '<alert>'
         assert self.client.post(self.url, data).status_code == 400
+
+
+@mock.patch.object(middleware.statsd, 'incr')
+class TestErrorLog(TestCase):
+
+    def setUp(self):
+        dictconfig.dictConfig(cfg)
+        self.log = logging.getLogger('test.logging')
+
+    def division_error(self):
+        try:
+            1 / 0
+        except:
+            return sys.exc_info()
+
+    def test_emit(self, incr):
+        self.log.error('blargh!', exc_info=self.division_error())
+        assert incr.call_args[0][0] == 'error.zerodivisionerror'
+
+    def test_not_emit(self, incr):
+        self.log.error('blargh!')
+        assert not incr.called

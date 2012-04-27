@@ -10,6 +10,13 @@ Credits:
   of and put in here.
 - robhudson for django-debug-toolbar
 
+Changes
+-------
+
+0.3:
+
+- added in logging handler for logging error counts to stats
+
 Installation
 ------------
 
@@ -201,3 +208,15 @@ everyone not in INTERNAL_IPS::
                 return HttpResponseForbidden()
 
         STATSD_RECORD_GUARD = internal_only
+
+Logging errors
+~~~~~~~~~~~~~~
+
+If you want to log a count of the errors in your application to statsd, you can
+do this by adding in the handler. For example in your logging configuration::
+
+    'handlers': {
+        'test_statsd_handler': {
+            'class': 'django_statsd.loggers.errors.StatsdHandler',
+        },
+    }
