@@ -138,8 +138,28 @@ To record this in statsd you need a JavaScript lib on the front end to send
 data to the server. You then use the server to record the information. This
 library provides a view to hook that up for different libraries.
 
-Currently we only implement timings for boomerang, but we'll have more as we
-need them:
+First, make sure you can record the timings in your Django site urls. This
+could be done by pointing straight to the view or including the URL for
+example::
+
+        from django_statsd.urls import urlpatterns as statsd_patterns
+
+        urlpatterns = patterns('',
+                ('^services/timing/', include(statsd_patterns)),
+        )
+
+In this case the URL to the record view will be `/services/timing/record`.
+
+Second, hook up the client. There is a un-sophisticated client called `stick`
+included in the static directory. This requires no configuration on your part,
+just make sure that the file `django_statsd/static/stick.js` is in your sites
+JS.
+
+Then call it in the following manner::
+
+        stick.send('/services/timing/record');
+
+We also include support for `boomerang`, a sophisticated client from Yahoo:
 
 http://yahoo.github.com/boomerang
 
@@ -151,31 +171,17 @@ http://yahoo.github.com/boomerang/doc/howtos/howto-9.html
 When the script is added to your site, add the following JS::
 
         BOOMR.init({
-                beacon_url: '/the.url.to.your.record'
+                beacon_url: '/services/timing/record'
         }).addVar('client', 'boomerang');
 
-Next add in the URL into your Django site urls. This could be done by pointing
-straight to the view or including the URL for example::
+Once you've installed either boomerang or stick, you'll see the following keys
+sent::
 
-
-        from django_statsd.urls import urlpatterns as statsd_patterns
-
-        urlpatterns = patterns('',
-                ('^services/timing/', include(statsd_patterns)),
-        )
-
-In this case the URL to the record view will be `/services/timing/boomerang`.
-
-Here's an example of the keys sent::
-
-        amo.window.performance.timing.domComplete 5309|ms
-        amo.window.performance.timing.domInteractive 3819|ms
-        amo.window.performance.timing.domLoading 1780|ms
-        amo.window.performance.navigation.redirectCount 0|c
-        amo.window.performance.navigation.type.reload 1|c
-
-*Note:* this is a new feature, we might be altering these timings as we go
-along.
+        window.performance.timing.domComplete 5309|ms
+        window.performance.timing.domInteractive 3819|ms
+        window.performance.timing.domLoading 1780|ms
+        window.performance.navigation.redirectCount 0|c
+        window.performance.navigation.type.reload 1|c
 
 There's a couple of options with this you can set in settings::
 
