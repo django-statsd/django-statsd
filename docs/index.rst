@@ -16,6 +16,10 @@ Credits:
 Changes
 -------
 
+0.3.2:
+
+- update to work with latest Django Debug Toolbar
+
 0.3:
 
 - added in logging handler for logging error counts to stats
