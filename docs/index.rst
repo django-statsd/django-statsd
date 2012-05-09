@@ -16,6 +16,10 @@ Credits:
 Changes
 -------
 
+0.3.3:
+
+- fix setup.py to include loggers etc
+
 0.3.2:
 
 - update to work with latest Django Debug Toolbar
