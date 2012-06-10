@@ -1,7 +1,33 @@
-<table id="statsd"
+<section id="statsd"
   data-graphite="{{ graphite }}"
   data-roots-timers="{% for root in timers %}{{ root }}{% if not forloop.last %}|{% endif %}{% endfor %}"
   data-roots-counts="{% for root in counts %}{{ root }}{% if not forloop.last %}|{% endif %}{% endfor %}">
+<table id="timings">
+  <thead>
+    <tr>
+      <th>Stat</th>
+      <th class="timeline">Timing</th>
+      <th>Time</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for value in timings %}
+    <tr>
+      <td><a href="#" class="statsd" data-key="{{ value.0 }}" data-type="timing">{{ value.0 }}</a></td>
+      <td class="timeline">
+        <div class="djDebugTimeline">
+          <div class="djDebugLineChart" style="left: {{ value.1 }}%;">
+            <strong style="width: {{ value.2 }}%; background: grey;">&nbsp;</strong>
+          </div>
+      </div>
+      </td>
+      <td>{{ value.3 }}ms</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<table>
   <thead>
     <tr>
       <th>Stat</th>
@@ -29,6 +55,7 @@
     {% endfor %}
   </tbody>
 </table>
+</section>
 
 <div id="graphs" img="graphite?width=586&amp;height=308&amp;target=root.key&amp;target=root.key.lower&amp;target=root.key.mean&amp;target=root.key.upper_90&amp;target=scale(root.key.count,0.1)&amp;from=-24hours&amp;title=24 hours" />
 
