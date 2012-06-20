@@ -60,7 +60,7 @@ def process_key(start, key, value):
 @require_http_methods(['GET', 'HEAD'])
 def _process_boomerang(request):
     if 'nt_nav_st' not in request.GET:
-        raise ValueError, ('nt_nav_st not in request.GET, make sure boomerang'
+        raise ValueError('nt_nav_st not in request.GET, make sure boomerang'
             ' is made with navigation API timings as per the following'
             ' http://yahoo.github.com/boomerang/doc/howtos/howto-9.html')
 
@@ -115,7 +115,7 @@ def record(request):
     guard = getattr(settings, 'STATSD_RECORD_GUARD', None)
     if guard:
         if not callable(guard):
-            raise ValueError, 'STATSD_RECORD_GUARD must be callable'
+            raise ValueError('STATSD_RECORD_GUARD must be callable')
         result = guard(request)
         if result:
             return result

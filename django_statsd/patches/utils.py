@@ -9,4 +9,3 @@ def wrapped(method, key, *args, **kw):
 
 def wrap(method, key, *args, **kw):
     return partial(wrapped, method, key, *args, **kw)
-

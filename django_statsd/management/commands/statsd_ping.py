@@ -21,4 +21,3 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kw):
         statsd.timing(kw.get('key'), time.time())
-

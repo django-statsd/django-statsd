@@ -1,12 +1,27 @@
-import dictconfig
 import logging
 import sys
 
 from django.conf import settings
+
+minimal = {
+    'DATABASES': {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': 'mydatabase'
+        }
+    },
+    'ROOT_URLCONF':'',
+    'STATSD_CLIENT': 'django_statsd.clients.null'
+}
+
+if not settings.configured:
+    settings.configure(**minimal)
+
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseForbidden
 from django.test import TestCase
 from django.test.client import RequestFactory
+from django.utils import dictconfig
 from django.utils import unittest
 
 import mock
@@ -28,6 +43,7 @@ cfg = {
         },
     },
 }
+
 
 
 @mock.patch.object(middleware.statsd, 'incr')
@@ -131,7 +147,7 @@ class TestRecord(TestCase):
         self.url = reverse('django_statsd.record')
         settings.STATSD_RECORD_GUARD = None
         self.good = {'client': 'boomerang', 'nt_nav_st': 1,
-                      'nt_domcomp': 3}
+                     'nt_domcomp': 3}
         self.stick = {'client': 'stick',
                       'window.performance.timing.domComplete': 123,
                       'window.performance.timing.domInteractive': 456,

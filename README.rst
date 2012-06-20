@@ -10,11 +10,4 @@ Credits:
   of and put in here.
 - robhudson for django-debug-toolbar
 
-Changes
--------
-
-0.3:
-
-- added in logging handler for logging error counts to stats
-
 For more see our docs at: http://readthedocs.org/docs/django-statsd/en/latest/

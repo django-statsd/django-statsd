@@ -16,6 +16,11 @@ Credits:
 Changes
 -------
 
+0.3.5:
+
+- fix tests to work standalone
+- add in waterfall view of timings
+
 0.3.3:
 
 - fix setup.py to include loggers etc

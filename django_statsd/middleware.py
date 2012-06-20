@@ -2,6 +2,7 @@ from django_statsd.clients import statsd
 import inspect
 import time
 
+
 class GraphiteMiddleware(object):
 
     def process_response(self, request, response):
