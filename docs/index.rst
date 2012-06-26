@@ -82,7 +82,7 @@ Django statsd will choose the client as specified in your config and send the
 data to it. You can change you client by specifying it in the config, the
 default is::
 
-        STATSD_CLIENT = 'django_statsd.clients.statsd'
+        STATSD_CLIENT = 'django_statsd.clients.normal'
 
 To send timings or counts with every request, add in some middleware::
 
@@ -100,6 +100,13 @@ To get timings for your database or your cache, put in some monkeypatches::
 
 Toolbar integration
 -------------------
+
+Make sure `django_statsd` is installed::
+
+        INSTALLED_APPS = (
+                ..
+                'django_statsd',
+        )
 
 This will show you the statsd timings in the toolbar::
 
