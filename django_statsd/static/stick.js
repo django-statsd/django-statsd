@@ -10,17 +10,19 @@ exports.send = function(url) {
     var perf = window.performance || window.msPerformance ||
                window.webkitPerformance || window.mozPerformance;
     if (perf) {
-        $.post(url,  {
-            'window.performance.timing.navigationStart': perf.timing.navigationStart,
-            'window.performance.timing.domComplete': perf.timing.domComplete,
-            'window.performance.timing.domInteractive': perf.timing.domInteractive,
-            'window.performance.timing.domLoading': perf.timing.domLoading,
-            'window.performance.timing.loadEventEnd': perf.timing.loadEventEnd,
-            'window.performance.timing.responseStart': perf.timing.responseStart,
-            'window.performance.navigation.redirectCount': perf.navigation.redirectCount,
-            'window.performance.navigation.type': perf.navigation.type,
-            'client': 'stick'
-        });
+        setTimeout(function() {
+            $.post(url,  {
+                'window.performance.timing.navigationStart': perf.timing.navigationStart,
+                'window.performance.timing.domComplete': perf.timing.domComplete,
+                'window.performance.timing.domInteractive': perf.timing.domInteractive,
+                'window.performance.timing.domLoading': perf.timing.domLoading,
+                'window.performance.timing.loadEventEnd': perf.timing.loadEventEnd,
+                'window.performance.timing.responseStart': perf.timing.responseStart,
+                'window.performance.navigation.redirectCount': perf.navigation.redirectCount,
+                'window.performance.navigation.type': perf.navigation.type,
+                'client': 'stick'
+            });
+        }, 1000);
     }
 };
 
