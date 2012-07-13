@@ -15,6 +15,8 @@ exports.send = function(url) {
             'window.performance.timing.domComplete': perf.timing.domComplete,
             'window.performance.timing.domInteractive': perf.timing.domInteractive,
             'window.performance.timing.domLoading': perf.timing.domLoading,
+            'window.performance.timing.loadEventEnd': perf.timing.loadEventEnd,
+            'window.performance.timing.responseStart': perf.timing.responseStart,
             'window.performance.navigation.redirectCount': perf.navigation.redirectCount,
             'window.performance.navigation.type': perf.navigation.type,
             'client': 'stick'

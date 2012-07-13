@@ -36,10 +36,12 @@ types = {
 }
 
 # These are the default keys that we will try and record.
-keys = [
+stick_keys = [
  'window.performance.timing.domComplete',
  'window.performance.timing.domInteractive',
  'window.performance.timing.domLoading',
+ 'window.performance.timing.loadEventEnd',
+ 'window.performance.timing.responseStart',
  'window.performance.navigation.redirectCount',
  'window.performance.navigation.type',
 ]
@@ -57,6 +59,22 @@ def process_key(start, key, value):
         statsd.incr(key, int(value))
 
 
+def _process_summaries(start, keys):
+    calculated = {
+        'network': keys['window.performance.timing.responseStart'] - start,
+        'app': keys['window.performance.timing.domLoading'] -
+               keys['window.performance.timing.responseStart'],
+        'dom': keys['window.performance.timing.domComplete'] -
+               keys['window.performance.timing.domLoading'],
+        'rendering': keys['window.performance.timing.loadEventEnd'] -
+                     keys['window.performance.timing.domComplete'],
+    }
+    for k, v in calculated.items():
+        # If loadEventEnd still does not get populated, we could end up with
+        # negative numbers here.
+        statsd.timing('window.performance.calculated.%s' % k, max(v, 0))
+
+
 @require_http_methods(['GET', 'HEAD'])
 def _process_boomerang(request):
     if 'nt_nav_st' not in request.GET:
@@ -68,24 +86,39 @@ def _process_boomerang(request):
     # for the purposes of statsd measurement.
     start = int(request.GET['nt_nav_st'])
 
-    for k in getattr(settings, 'STATSD_RECORD_KEYS', keys):
+    keys = {}
+    for k in getattr(settings, 'STATSD_RECORD_KEYS', stick_keys):
         v = request.GET.get(boomerang[k])
         if not v or v == 'undefined':
             continue
         if k in boomerang:
             process_key(start, k, v)
+            keys[k] = v
+
+    _process_summaries(start, keys)
 
 
 @require_http_methods(['POST'])
 def _process_stick(request):
-    if 'window.performance.timing.navigationStart' not in request.POST:
+    start = request.POST.get('window.performance.timing.navigationStart', None)
+    if not start:
         return http.HttpResponseBadRequest()
 
-    start = int(request.POST['window.performance.timing.navigationStart'])
-
-    for k in getattr(settings, 'STATSD_RECORD_KEYS', keys):
-        if k in request.POST:
+    start = int(start)
+    keys = {}
+    for k in getattr(settings, 'STATSD_RECORD_KEYS', stick_keys):
+        v = request.POST.get(k, None)
+        if v:
+            keys[k] = int(request.POST[k])
             process_key(start, k, request.POST[k])
+
+    # Only process the network when we have these.
+    for key in ['window.performance.timing.loadEventEnd',
+                'window.performance.timing.responseStart']:
+        if key not in keys:
+            return
+
+    _process_summaries(start, keys)
 
 
 clients = {
