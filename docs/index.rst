@@ -16,6 +16,10 @@ Credits:
 Changes
 -------
 
+0.3.6:
+
+- add in log handler
+
 0.3.5:
 
 - fix tests to work standalone
@@ -64,6 +68,10 @@ First off, pick your client, one of:
 - django_statsd.clients.normal
 
   Use this for production, it just passes through to the real actual pystatsd.
+
+- django_statsd.clients.log
+
+  Just writes the values to a log file using Python's logging module.
 
 Usage
 -----
