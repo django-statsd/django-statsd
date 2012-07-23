@@ -1,10 +1,11 @@
 from django import http
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from django_statsd.clients import statsd
 
-boomerang ={
+boomerang = {
  'window.performance.navigation.redirectCount': 'nt_red_cnt',
  'window.performance.navigation.type': 'nt_nav_type',
  'window.performance.timing.connectEnd': 'nt_con_end',
@@ -95,7 +96,10 @@ def _process_boomerang(request):
             process_key(start, k, v)
             keys[k] = v
 
-    _process_summaries(start, keys)
+    try:
+        _process_summaries(start, keys)
+    except KeyError:
+        pass
 
 
 @require_http_methods(['POST'])
@@ -127,6 +131,7 @@ clients = {
 }
 
 
+@csrf_exempt
 def record(request):
     """
     This is a Django method you can link to in your URLs that process
