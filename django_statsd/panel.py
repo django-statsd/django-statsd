@@ -23,6 +23,9 @@ def munge(stats):
 
 def times(stats):
     results = []
+    if not stats:
+        return results
+
     start = stats[0][1]
     end = max([t[3] for t in stats])
     length = end - start
