@@ -73,6 +73,14 @@ First off, pick your client, one of:
 
   Just writes the values to a log file using Python's logging module.
 
+- django_statsd.clients.moz_metlog
+
+  Use this to route messages through 
+  _metlog: http://github.com/mozilla-services/metlog-py.  Note that
+  using metlog will require you to bind the metlog instance to bind
+  the metlog client instance as settings.METLOG.
+  
+
 Usage
 -----
 
