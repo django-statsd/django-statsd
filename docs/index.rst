@@ -75,11 +75,11 @@ First off, pick your client, one of:
 
 - django_statsd.clients.moz_metlog
 
-  Use this to route messages through 
+  Use this to route messages through
   _metlog: http://github.com/mozilla-services/metlog-py.  Note that
   using metlog will require you to bind the metlog instance to bind
   the metlog client instance as settings.METLOG.
-  
+
 
 Usage
 -----
@@ -265,6 +265,12 @@ do this by adding in the handler. For example in your logging configuration::
             'class': 'django_statsd.loggers.errors.StatsdHandler',
         },
     }
+
+Contributors
+~~~~~~~~~~~~
+
+* crankycoder: https://github.com/andymckay/django-statsd/pull/13
+* streeter: https://github.com/andymckay/django-statsd/pull/10
 
 Indices and tables
 ==================
