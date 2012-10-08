@@ -16,6 +16,14 @@ Credits:
 Changes
 -------
 
+0.3.8:
+
+- add in a nose plugin
+
+0.3.7:
+
+- add in metlog client
+
 0.3.6:
 
 - add in log handler
@@ -80,6 +88,10 @@ First off, pick your client, one of:
   using metlog will require you to bind the metlog instance to bind
   the metlog client instance as settings.METLOG.
 
+- django_statsd.clients.nose
+
+  Route messages through to the nose plugin. This also works with the toolbar
+  client, so you don't need to change them on -dev.
 
 Usage
 -----
@@ -265,6 +277,14 @@ do this by adding in the handler. For example in your logging configuration::
             'class': 'django_statsd.loggers.errors.StatsdHandler',
         },
     }
+
+Nose
+====
+
+There is also a nose plugin. If you use nose, then run tests, you'll get output
+in your tests. To use run tests with the following::
+
+    --with-statsd
 
 Contributors
 ~~~~~~~~~~~~
