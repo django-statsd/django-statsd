@@ -27,6 +27,11 @@ class NoseStatsd(Plugin):
         def write(line):
             stream.writeln('%s' % line)
 
+        if not hasattr(statsd, 'timings'):
+            write("Statsd timings not saved, ensure your statsd client is: "
+                  "STATSD_CLIENT = 'django_statsd.clients.nose'")
+            return
+
         timings = {}
         longest = 0
         for v in statsd.timings:
