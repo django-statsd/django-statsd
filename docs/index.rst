@@ -119,6 +119,10 @@ To send timings or counts with every request, add in some middleware::
                 'django_statsd.middleware.GraphiteMiddleware',
                 ) + MIDDLEWARE_CLASSES
 
+If you are using tastypie, you might enjoy::
+
+       'django_statsd.middleware.TastyPieRequestTimingMiddleware'
+
 To get timings for your database or your cache, put in some monkeypatches::
 
         STATSD_PATCHES = [
