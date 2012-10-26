@@ -52,6 +52,9 @@ class TastyPieRequestTimingMiddleware(GraphiteRequestTimingMiddleware):
     """statd's timing specific to Tastypie."""
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-        request._view_module = view_kwargs['api_name']
-        request._view_name = view_kwargs['resource_name']
-        request._start_time = time.time()
+        try:
+            request._view_module = view_kwargs['api_name']
+            request._view_name = view_kwargs['resource_name']
+            request._start_time = time.time()
+        except AttributeError:
+            pass
