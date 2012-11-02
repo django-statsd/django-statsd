@@ -56,5 +56,5 @@ class TastyPieRequestTimingMiddleware(GraphiteRequestTimingMiddleware):
             request._view_module = view_kwargs['api_name']
             request._view_name = view_kwargs['resource_name']
             request._start_time = time.time()
-        except AttributeError:
+        except (AttributeError, KeyError):
             pass
