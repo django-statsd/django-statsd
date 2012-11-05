@@ -16,6 +16,14 @@ Credits:
 Changes
 -------
 
+0.3.8.3:
+
+- some bug fixes
+
+0.3.8.1:
+
+- add in a tasty pie middleware
+
 0.3.8:
 
 - add in a nose plugin
@@ -293,8 +301,10 @@ in your tests. To use run tests with the following::
 Contributors
 ~~~~~~~~~~~~
 
-* crankycoder: https://github.com/andymckay/django-statsd/pull/13
 * streeter: https://github.com/andymckay/django-statsd/pull/10
+* crankycoder: https://github.com/andymckay/django-statsd/pull/13
+* glogiotatidis: https://github.com/andymckay/django-statsd/pull/16
+* tominsam: https://github.com/andymckay/django-statsd/pull/17
 
 Indices and tables
 ==================
