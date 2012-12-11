@@ -1,6 +1,6 @@
 from time import time
 
-from statsd.client import StatsClient
+from django_statsd.clients.null import StatsClient
 
 
 class StatsClient(StatsClient):
@@ -32,5 +32,7 @@ class StatsClient(StatsClient):
         self.cache.setdefault(stat, [])
         self.cache[stat].append([-count, rate])
 
-    def _send(self, stat, value, rate):
-        pass
+    def gauge(self, stat, value, rate=1):
+        """Set a gauge value."""
+        stat = '%s|gauge' % stat
+        self.cache[stat] = [[value, rate]]

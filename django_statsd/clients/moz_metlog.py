@@ -1,4 +1,4 @@
-from statsd.client import StatsClient
+from django_statsd.clients.null import StatsClient
 from django.conf import settings
 
 

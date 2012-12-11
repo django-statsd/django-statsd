@@ -1,12 +1,12 @@
 import logging
 
-from statsd.client import StatsClient
+from django_statsd.clients.null import StatsClient
 
 log = logging.getLogger('statsd')
 
 
 class StatsClient(StatsClient):
-    """A client that pushes things into a local cache."""
+    """A client that sends messages to the logging framework."""
 
     def timing(self, stat, delta, rate=1):
         """Send new timing information. `delta` is in milliseconds."""
@@ -19,3 +19,7 @@ class StatsClient(StatsClient):
     def decr(self, stat, count=1, rate=1):
         """Decrement a stat by `count`."""
         log.info('Decrement: %s, %s, %s' % (stat, count, rate))
+
+    def gauge(self, stat, value, rate=1):
+        """Set a gauge value."""
+        log.info('Gauge: %s, %s, %s' % (stat, value, rate))
