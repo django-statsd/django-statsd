@@ -16,6 +16,10 @@ Credits:
 Changes
 -------
 
+0.3.8.4:
+
+- gauge support
+
 0.3.8.3:
 
 - some bug fixes
@@ -305,6 +309,7 @@ Contributors
 * crankycoder: https://github.com/andymckay/django-statsd/pull/13
 * glogiotatidis: https://github.com/andymckay/django-statsd/pull/16
 * tominsam: https://github.com/andymckay/django-statsd/pull/17
+* youngbob: https://github.com/andymckay/django-statsd/pull/19
 
 Indices and tables
 ==================
