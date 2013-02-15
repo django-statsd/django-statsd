@@ -16,6 +16,10 @@ Credits:
 Changes
 -------
 
+0.3.8.5:
+
+- don't count some 404 as 500 and fix deprecation warnings
+
 0.3.8.4:
 
 - gauge support
@@ -310,6 +314,8 @@ Contributors
 * glogiotatidis: https://github.com/andymckay/django-statsd/pull/16
 * tominsam: https://github.com/andymckay/django-statsd/pull/17
 * youngbob: https://github.com/andymckay/django-statsd/pull/19
+* jsatt: https://github.com/andymckay/django-statsd/pull/20
+* youngbob: https://github.com/andymckay/django-statsd/pull/21
 
 Indices and tables
 ==================
@@ -317,4 +323,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
