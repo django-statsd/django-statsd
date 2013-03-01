@@ -15,6 +15,7 @@ minimal = {
     },
     'ROOT_URLCONF': '',
     'STATSD_CLIENT': 'django_statsd.clients.null',
+    'STATSD_PREFIX': None,
     'METLOG': None
 }
 
@@ -138,23 +139,26 @@ class TestClient(unittest.TestCase):
         eq_(client.cache, {'testing|count': [[1, 1]]})
 
 
-class TestMetlogClient(unittest.TestCase):
+class TestMetlogClient(TestCase):
 
     def check_metlog(self):
         try:
-            from metlog.config  import client_from_dict_config
+            from metlog.config import client_from_dict_config
             return client_from_dict_config
         except ImportError:
             raise SkipTest("Metlog is not installed")
 
     @nose_tools.raises(AttributeError)
     def test_no_metlog(self):
-        with mock.patch.object(settings, 'STATSD_CLIENT',
-                'django_statsd.clients.moz_metlog'):
+        with self.settings(STATSD_PREFIX='moz_metlog',
+                           STATSD_CLIENT='django_statsd.clients.moz_metlog'):
             get_client()
 
-    def test_get_client(self):
+    def _create_client(self):
         client_from_dict_config = self.check_metlog()
+
+        # Need to load within the test in case metlog is not installed
+        from metlog.config import client_from_dict_config
 
         METLOG_CONF = {
             'logger': 'django-statsd',
@@ -163,102 +167,111 @@ class TestMetlogClient(unittest.TestCase):
             },
         }
 
-        metlog = client_from_dict_config(METLOG_CONF)
-        with mock.patch.object(settings, 'METLOG', metlog):
-            with mock.patch.object(settings, 'STATSD_CLIENT',
-                    'django_statsd.clients.moz_metlog'):
+        return client_from_dict_config(METLOG_CONF)
 
-                client = get_client()
-                eq_(client.__module__, 'django_statsd.clients.moz_metlog')
+    def test_get_client(self):
+        metlog = self._create_client()
+        with self.settings(METLOG=metlog,
+                           STATSD_PREFIX='moz_metlog',
+                           STATSD_CLIENT='django_statsd.clients.moz_metlog'):
+            client = get_client()
+            eq_(client.__module__, 'django_statsd.clients.moz_metlog')
 
     def test_metlog_incr(self):
-        client_from_dict_config = self.check_metlog()
+        metlog = self._create_client()
+        with self.settings(METLOG=metlog,
+                           STATSD_PREFIX='moz_metlog',
+                           STATSD_CLIENT='django_statsd.clients.moz_metlog'):
+            client = get_client()
+            eq_(len(client.metlog.sender.msgs), 0)
+            client.incr('testing')
+            eq_(len(client.metlog.sender.msgs), 1)
 
-        # Need to load within the test in case metlog is not installed
-        from metlog.config import client_from_dict_config
-        METLOG_CONF = {
-            'logger': 'django-statsd',
-            'sender': {
-                'class': 'metlog.senders.DebugCaptureSender',
-            },
-        }
-
-        metlog = client_from_dict_config(METLOG_CONF)
-        with mock.patch.object(settings, 'METLOG', metlog):
-            with mock.patch.object(settings, 'STATSD_CLIENT',
-                    'django_statsd.clients.moz_metlog'):
-
-                client = get_client()
-                eq_(len(client.metlog.sender.msgs), 0)
-                client.incr('testing')
-                eq_(len(client.metlog.sender.msgs), 1)
-
-                msg = json.loads(client.metlog.sender.msgs[0])
-                eq_(msg['severity'], 6)
-                eq_(msg['payload'], '1')
-                eq_(msg['fields']['rate'], 1)
-                eq_(msg['fields']['name'], 'testing')
-                eq_(msg['type'], 'counter')
+            msg = json.loads(client.metlog.sender.msgs[0])
+            eq_(msg['severity'], 6)
+            eq_(msg['payload'], '1')
+            eq_(msg['fields']['rate'], 1)
+            eq_(msg['fields']['name'], 'moz_metlog.testing')
+            eq_(msg['type'], 'counter')
 
     def test_metlog_decr(self):
-        client_from_dict_config = self.check_metlog()
+        metlog = self._create_client()
+        with self.settings(METLOG=metlog,
+                           STATSD_PREFIX='moz_metlog',
+                           STATSD_CLIENT='django_statsd.clients.moz_metlog'):
+            client = get_client()
+            eq_(len(client.metlog.sender.msgs), 0)
+            client.decr('testing')
+            eq_(len(client.metlog.sender.msgs), 1)
 
-        # Need to load within the test in case metlog is not installed
-        from metlog.config import client_from_dict_config
-
-        METLOG_CONF = {
-            'logger': 'django-statsd',
-            'sender': {
-                'class': 'metlog.senders.DebugCaptureSender',
-            },
-        }
-
-        metlog = client_from_dict_config(METLOG_CONF)
-        with mock.patch.object(settings, 'METLOG', metlog):
-            with mock.patch.object(settings, 'STATSD_CLIENT',
-                    'django_statsd.clients.moz_metlog'):
-
-                client = get_client()
-                eq_(len(client.metlog.sender.msgs), 0)
-                client.decr('testing')
-                eq_(len(client.metlog.sender.msgs), 1)
-
-                msg = json.loads(client.metlog.sender.msgs[0])
-                eq_(msg['severity'], 6)
-                eq_(msg['payload'], '-1')
-                eq_(msg['fields']['rate'], 1)
-                eq_(msg['fields']['name'], 'testing')
-                eq_(msg['type'], 'counter')
+            msg = json.loads(client.metlog.sender.msgs[0])
+            eq_(msg['severity'], 6)
+            eq_(msg['payload'], '-1')
+            eq_(msg['fields']['rate'], 1)
+            eq_(msg['fields']['name'], 'moz_metlog.testing')
+            eq_(msg['type'], 'counter')
 
     def test_metlog_timing(self):
-        client_from_dict_config = self.check_metlog()
+        metlog = self._create_client()
+        with self.settings(METLOG=metlog,
+                           STATSD_PREFIX='moz_metlog',
+                           STATSD_CLIENT='django_statsd.clients.moz_metlog'):
+            client = get_client()
+            eq_(len(client.metlog.sender.msgs), 0)
+            client.timing('testing', 512, rate=2)
+            eq_(len(client.metlog.sender.msgs), 1)
 
-        # Need to load within the test in case metlog is not installed
-        from metlog.config import client_from_dict_config
+            msg = json.loads(client.metlog.sender.msgs[0])
+            eq_(msg['severity'], 6)
+            eq_(msg['payload'], '512')
+            eq_(msg['fields']['rate'], 2)
+            eq_(msg['fields']['name'], 'moz_metlog.testing')
+            eq_(msg['type'], 'timer')
 
-        METLOG_CONF = {
-            'logger': 'django-statsd',
-            'sender': {
-                'class': 'metlog.senders.DebugCaptureSender',
-            },
-        }
+    @nose_tools.raises(AttributeError)
+    def test_metlog_no_prefixes(self):
+        metlog = self._create_client()
 
-        metlog = client_from_dict_config(METLOG_CONF)
-        with mock.patch.object(settings, 'METLOG', metlog):
-            with mock.patch.object(settings, 'STATSD_CLIENT',
-                    'django_statsd.clients.moz_metlog'):
+        with self.settings(METLOG=metlog,
+                           STATSD_CLIENT='django_statsd.clients.moz_metlog'):
+            client = get_client()
+            client.incr('foo', 2)
+            
+    def test_metlog_prefixes(self):
+        metlog = self._create_client()
 
-                client = get_client()
-                eq_(len(client.metlog.sender.msgs), 0)
-                client.timing('testing', 512, rate=2)
-                eq_(len(client.metlog.sender.msgs), 1)
+        with self.settings(METLOG=metlog,
+                           STATSD_PREFIX='some_prefix',
+                           STATSD_CLIENT='django_statsd.clients.moz_metlog'):
+            client = get_client()
+            eq_(len(client.metlog.sender.msgs), 0)
 
-                msg = json.loads(client.metlog.sender.msgs[0])
-                eq_(msg['severity'], 6)
-                eq_(msg['payload'], '512')
-                eq_(msg['fields']['rate'], 2)
-                eq_(msg['fields']['name'], 'testing')
-                eq_(msg['type'], 'timer')
+            client.timing('testing', 512, rate=2)
+            client.incr('foo', 2)
+            client.decr('bar', 5)
+
+            eq_(len(client.metlog.sender.msgs), 3)
+
+            msg = json.loads(client.metlog.sender.msgs[0])
+            eq_(msg['severity'], 6)
+            eq_(msg['payload'], '512')
+            eq_(msg['fields']['rate'], 2)
+            eq_(msg['fields']['name'], 'some_prefix.testing')
+            eq_(msg['type'], 'timer')
+
+            msg = json.loads(client.metlog.sender.msgs[1])
+            eq_(msg['severity'], 6)
+            eq_(msg['payload'], '2')
+            eq_(msg['fields']['rate'], 1)
+            eq_(msg['fields']['name'], 'some_prefix.foo')
+            eq_(msg['type'], 'counter')
+
+            msg = json.loads(client.metlog.sender.msgs[2])
+            eq_(msg['severity'], 6)
+            eq_(msg['payload'], '-5')
+            eq_(msg['fields']['rate'], 1)
+            eq_(msg['fields']['name'], 'some_prefix.bar')
+            eq_(msg['type'], 'counter')
 
 
 # This is primarily for Zamboni, which loads in the custom middleware
