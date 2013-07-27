@@ -1,3 +1,4 @@
+from collections import defaultdict
 from time import time
 
 from django_statsd.clients.null import StatsClient
@@ -11,7 +12,7 @@ class StatsClient(StatsClient):
         self.reset()
 
     def reset(self):
-        self.cache = {}
+        self.cache = defaultdict(list)
         self.timings = []
 
     def timing(self, stat, delta, rate=1):
@@ -23,16 +24,18 @@ class StatsClient(StatsClient):
     def incr(self, stat, count=1, rate=1):
         """Increment a stat by `count`."""
         stat = '%s|count' % stat
-        self.cache.setdefault(stat, [])
         self.cache[stat].append([count, rate])
 
     def decr(self, stat, count=1, rate=1):
         """Decrement a stat by `count`."""
         stat = '%s|count' % stat
-        self.cache.setdefault(stat, [])
         self.cache[stat].append([-count, rate])
 
     def gauge(self, stat, value, rate=1):
         """Set a gauge value."""
         stat = '%s|gauge' % stat
         self.cache[stat] = [[value, rate]]
+
+    def set(self, stat, value, rate=1):
+        stat = '%s|set' % stat
+        self.cache[stat].append([value, rate])
