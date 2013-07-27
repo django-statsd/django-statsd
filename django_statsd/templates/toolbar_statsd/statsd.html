@@ -77,9 +77,9 @@ $(document).ready(function() {
          }
          target.html('');
          $.each(roots, function(root) {
-            var custom = img.replace('graphite', graphite, 'g')
-                            .replace('root', roots[root], 'g')
-                            .replace('key', that.attr('data-key'), 'g');
+            var custom = img.replace(/graphite/g, graphite)
+                            .replace(/root/g, roots[root])
+                            .replace(/key/g, that.attr('data-key'));
                             target.append('<p><b>' + roots[root] + '.' + that.attr('data-key') + '</b></p><img src="' + custom + '">');
                             console.log(custom);
         })
