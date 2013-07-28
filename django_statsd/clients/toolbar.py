@@ -18,7 +18,7 @@ class StatsClient(StatsClient):
         """Send new timing information. `delta` is in milliseconds."""
         stat = '%s|timing' % stat
         now = time() * 1000
-        self.timings.append([stat, now, delta, now + delta])
+        self.timings.append([stat, now - delta, delta, now])
 
     def incr(self, stat, count=1, rate=1):
         """Increment a stat by `count`."""
