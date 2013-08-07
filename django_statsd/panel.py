@@ -26,16 +26,23 @@ def times(stats):
     if not stats:
         return results
 
-    start = stats[0][1]
-    end = max([t[3] for t in stats])
-    length = end - start
-    for stat in stats:
-        results.append([stat[0].split('|')[0],
+    all_start = stats[0][1]
+    all_end = max([t[3] for t in stats])
+    all_duration = all_end - all_start
+    for stat, start, duration, end in stats:
+        start_rel = (start - all_start)
+        start_ratio = (start_rel / float(all_duration))
+        duration_ratio = (duration / float(all_duration))
+        try:
+            duration_ratio_relative = duration_ratio / (1.0 - start_ratio)
+        except ZeroDivisionError:
+            duration_ratio_relative = 0
+        results.append([stat.split('|')[0],
                         # % start from left.
-                        ((stat[1] - start - stat[2]) / float(length)) * 100,
-                        # % width.
-                        max(1, (stat[2] / float(length)) * 100),
-                        stat[2],
+                        start_ratio * 100.0,
+                        # % width
+                        duration_ratio_relative * 100.0,
+                        duration,
                         ])
     return results
 
