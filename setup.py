@@ -10,7 +10,7 @@ setup(
     author='Andy McKay',
     author_email='andym@mozilla.com',
     license='BSD',
-    install_requires=['statsd==1.0.0'],
+    install_requires=['statsd>=2.0.0'],
     packages=['django_statsd',
               'django_statsd/patches',
               'django_statsd/clients',
