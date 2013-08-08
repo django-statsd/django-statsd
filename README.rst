@@ -1,3 +1,13 @@
+=============
+Django Statsd
+=============
+
+Documentation is on `Read the Docs <https://django-statsd.readthedocs.org/>`_.
+
+-------
+License
+-------
+
 BSD and MPL
 
 Portions of this are from commonware:
