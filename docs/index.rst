@@ -16,6 +16,12 @@ Credits:
 Changes
 -------
 
+0.3.9:
+
+- statsd 2.0 support
+
+- improved Django debug toolbar support
+
 0.3.8.5:
 
 - don't count some 404 as 500 and fix deprecation warnings
@@ -309,13 +315,20 @@ in your tests. To use run tests with the following::
 Contributors
 ~~~~~~~~~~~~
 
-* streeter: https://github.com/andymckay/django-statsd/pull/10
-* crankycoder: https://github.com/andymckay/django-statsd/pull/13
-* glogiotatidis: https://github.com/andymckay/django-statsd/pull/16
-* tominsam: https://github.com/andymckay/django-statsd/pull/17
-* youngbob: https://github.com/andymckay/django-statsd/pull/19
-* jsatt: https://github.com/andymckay/django-statsd/pull/20
-* youngbob: https://github.com/andymckay/django-statsd/pull/21
+* streeter
+* crankycoder
+* glogiotatidis
+* tominsam
+* youngbob
+* jsatt
+* youngbob
+* jsocol
+* janfabry
+* tomchristie
+
+See:
+
+https://github.com/andymckay/django-statsd/pulls?direction=desc&page=1&sort=created&state=closed
 
 Indices and tables
 ==================
