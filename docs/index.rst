@@ -325,6 +325,7 @@ Contributors
 * jsocol
 * janfabry
 * tomchristie
+* diox
 
 See:
 
