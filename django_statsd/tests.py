@@ -113,6 +113,31 @@ class TestTiming(unittest.TestCase):
         for expected, (args, kwargs) in zip(names, timing.call_args_list):
             eq_(expected, args[0])
 
+    def test_request_timing_tastypie(self, timing):
+        func = lambda x: x
+        gmw = middleware.TastyPieRequestTimingMiddleware()
+        gmw.process_view(self.req, func, tuple(), {'api_name': 'my_api_name',
+            'resource_name': 'my_resource_name'})
+        gmw.process_response(self.req, self.res)
+        eq_(timing.call_count, 3)
+        names = ['view.my_api_name.my_resource_name.GET',
+                 'view.my_api_name.GET',
+                 'view.GET']
+        for expected, (args, kwargs) in zip(names, timing.call_args_list):
+            eq_(expected, args[0])
+
+    def test_request_timing_tastypie_fallback(self, timing):
+        func = lambda x: x
+        gmw = middleware.TastyPieRequestTimingMiddleware()
+        gmw.process_view(self.req, func, tuple(), dict())
+        gmw.process_response(self.req, self.res)
+        eq_(timing.call_count, 3)
+        names = ['view.%s.%s.GET' % (func.__module__, func.__name__),
+                 'view.%s.GET' % func.__module__,
+                 'view.GET']
+        for expected, (args, kwargs) in zip(names, timing.call_args_list):
+            eq_(expected, args[0])
+
 
 class TestClient(unittest.TestCase):
 
