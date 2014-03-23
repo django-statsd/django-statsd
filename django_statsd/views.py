@@ -94,7 +94,7 @@ def _process_boomerang(request):
             continue
         if k in boomerang:
             process_key(start, k, v)
-            keys[k] = v
+            keys[k] = int(v)
 
     try:
         _process_summaries(start, keys)
