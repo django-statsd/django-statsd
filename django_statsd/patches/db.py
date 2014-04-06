@@ -1,3 +1,4 @@
+import django
 from django.db.backends import util
 
 from django_statsd.patches.utils import wrap
@@ -13,7 +14,8 @@ def __getattr__(self, attr):
     If you are NOT in debug mode, this is the wrapper that's used.
     Sadly if it's in debug mode, we get a different wrapper.
     """
-    if self.db.is_managed():
+    if django.VERSION < (1, 6) and self.db.is_managed():
+        # In Django 1.6 you can't put a connection in managed mode
         self.db.set_dirty()
     if attr in self.__dict__:
         return self.__dict__[attr]
