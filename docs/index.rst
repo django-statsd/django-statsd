@@ -16,6 +16,10 @@ Credits:
 Changes
 -------
 
+0.3.11:
+
+- Django 1.6 support
+
 0.3.9:
 
 - statsd 2.0 support
@@ -326,6 +330,7 @@ Contributors
 * janfabry
 * tomchristie
 * diox
+* frewsxcv
 
 See:
 
