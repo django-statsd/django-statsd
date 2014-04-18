@@ -9,11 +9,6 @@ def key(db, attr):
 
 
 def __getattr__(self, attr):
-    """
-    The CursorWrapper is a pretty small wrapper around the cursor.
-    If you are NOT in debug mode, this is the wrapper that's used.
-    Sadly if it's in debug mode, we get a different wrapper.
-    """
     if django.VERSION < (1, 6) and self.db.is_managed():
         # In Django 1.6 you can't put a connection in managed mode
         self.db.set_dirty()
@@ -39,7 +34,16 @@ def wrap_class(base):
 
 
 def patch():
+    """
+    The CursorWrapper is a pretty small wrapper around the cursor.
+    If you are NOT in debug mode, this is the wrapper that's used.
+    Sadly if it's in debug mode, we get a different wrapper for version earlier than 1.6.
+    """
+
     # So that it will work when DEBUG = True.
-    util.CursorDebugWrapper = wrap_class(util.CursorDebugWrapper)
+    if django.VERSION < (1, 6):
+        util.CursorDebugWrapper = wrap_class(util.CursorDebugWrapper)
+    else:
+        util.CursorDebugWrapper.__getattr__ = __getattr__
     # So that it will work when DEBUG = False.
     util.CursorWrapper.__getattr__ = __getattr__
