@@ -1,49 +1,26 @@
 import django
 from django.db.backends import util
+from django_statsd.patches.utils import wrap, patch_method
 from django_statsd.clients import statsd
-from django_statsd.patches.utils import wrap
 
 
 def key(db, attr):
     return 'db.%s.%s.%s' % (db.client.executable_name, db.alias, attr)
 
-def __getattr__(self, attr):
+def pre_django_1_6_cursorwrapper_getattr(self, attr):
     """
     The CursorWrapper is a pretty small wrapper around the cursor.
     If you are NOT in debug mode, this is the wrapper that's used.
     Sadly if it's in debug mode, we get a different wrapper.
     """
-    if django.VERSION < (1, 6) and self.db.is_managed():
-        # In Django 1.6 you can't put a connection in managed mode
+    if self.db.is_managed():
         self.db.set_dirty()
     if attr in self.__dict__:
         return self.__dict__[attr]
     else:
-        if attr in ['execute', 'executemany']:
+        if attr in ['execute', 'executemany', 'callproc']:
             return wrap(getattr(self.cursor, attr), key(self.db, attr))
         return getattr(self.cursor, attr)
-
-
-def wrap_class(base, super_class=None):
-    """Returns a sub-class of the argument 'base'
-    The sub class has its execute and executemany methods will record query timings.
-
-    If the execute and executemany methods you're overriding makes super()
-    calls, the argument super_class can be provided to not break things.
-    """
-
-    class Wrapper(base):
-
-        def execute(self, *args, **kwargs):
-            with statsd.timer(key(self.db, 'execute')):
-                return super(super_class, self).execute(*args, **kwargs)
-
-        def executemany(self, *args, **kwargs):
-            with statsd.timer(key(self.db, 'executemany')):
-                return super(super_class, self).execute(*args, **kwargs)
-
-    super_class = super_class or Wrapper
-    return Wrapper
 
 def patch():
     """
@@ -52,10 +29,26 @@ def patch():
     Sadly if it's in debug mode, we get a different wrapper for version earlier than 1.6.
     """
 
+    def execute(orig_execute, self, *args, **kwargs):
+        with statsd.timer(key(self.db, 'execute')):
+            return orig_execute(self, *args, **kwargs)
+
+    def executemany(orig_executemany, self, *args, **kwargs):
+        with statsd.timer(key(self.db, 'executemany')):
+            return orig_executemany(self, *args, **kwargs)
+
+    def callproc(orig_callproc, self, *args, **kwargs):
+        with statsd.timer(key(self.db, 'callproc')):
+            return orig_callproc(self, *args, **kwargs)
+
     if django.VERSION > (1, 6):
-        util.CursorDebugWrapper = wrap_class(util.CursorDebugWrapper,
-                                                    super_class=util.CursorDebugWrapper)
-        util.CursorWrapper = wrap_class(util.CursorWrapper)
+        # In 1.6+ util.CursorDebugWrapper just makes calls to CursorWrapper
+        # As such, we only need to instrument CursorWrapper.
+        # Instrumenting both will result in duplicated metrics
+        patch_method(util.CursorWrapper, 'execute')(execute)
+        patch_method(util.CursorWrapper, 'executemany')(executemany)
+        patch_method(util.CursorWrapper, 'callproc')(callproc)
     else:
-        util.CursorDebugWrapper = wrap_class(util.CursorDebugWrapper)
-        util.CursorWrapper.__getattr__ = __getattr__
+        util.CursorWrapper.__getattr__ = pre_django_1_6_cursorwrapper_getattr
+        patch_method(util.CursorDebugWrapper, 'execute')(execute)
+        patch_method(util.CursorDebugWrapper, 'executemany')(executemany)
