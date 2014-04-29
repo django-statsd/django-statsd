@@ -32,6 +32,7 @@ from django.utils import unittest
 import mock
 from nose.tools import eq_
 from django_statsd.clients import get_client
+from django_statsd.patches import utils
 from django_statsd import middleware
 
 cfg = {
@@ -261,7 +262,7 @@ class TestMetlogClient(TestCase):
                            STATSD_CLIENT='django_statsd.clients.moz_metlog'):
             client = get_client()
             client.incr('foo', 2)
-            
+
     def test_metlog_prefixes(self):
         metlog = self._create_client()
 
@@ -407,3 +408,75 @@ class TestErrorLog(TestCase):
     def test_not_emit(self, incr):
         self.log.error('blargh!')
         assert not incr.called
+
+
+class TestPatchMethod(TestCase):
+
+    def setUp(self):
+        super(TestPatchMethod, self).setUp()
+
+        class DummyClass(object):
+
+            def sumargs(self, a, b, c=3, d=4):
+                return a + b + c + d
+
+            def badfn(self, a, b=2):
+                raise ValueError
+
+        self.cls = DummyClass
+
+    def test_late_patching(self):
+        """
+        Objects created before patching should get patched as well.
+        """
+        def patch_fn(original_fn, self, *args, **kwargs):
+            return original_fn(self, *args, **kwargs) + 10
+
+        obj = self.cls()
+        self.assertEqual(obj.sumargs(1, 2, 3, 4), 10)
+        utils.patch_method(self.cls, 'sumargs')(patch_fn)
+        self.assertEqual(obj.sumargs(1, 2, 3, 4), 20)
+
+    def test_doesnt_call_original_implicitly(self):
+        """
+        Original fn must be called explicitly from patched to be
+        executed.
+        """
+        def patch_fn(original_fn, self, *args, **kwargs):
+            return 10
+
+        with self.assertRaises(ValueError):
+            obj = self.cls()
+            obj.badfn(1, 2)
+
+        utils.patch_method(self.cls, 'badfn')(patch_fn)
+        self.assertEqual(obj.badfn(1, 2), 10)
+
+    def test_args_kwargs_are_honored(self):
+        """
+        Args and kwargs must be honored between calls from the patched to
+        the original version.
+        """
+        def patch_fn(original_fn, self, *args, **kwargs):
+            return original_fn(self, *args, **kwargs)
+
+        utils.patch_method(self.cls, 'sumargs')(patch_fn)
+        obj = self.cls()
+        self.assertEqual(obj.sumargs(1, 2), 10)
+        self.assertEqual(obj.sumargs(1, 1, d=1), 6)
+        self.assertEqual(obj.sumargs(1, 1, 1, 1), 4)
+
+    def test_patched_fn_can_receive_arbitrary_arguments(self):
+        """
+        Args and kwargs can be received arbitrarily with no contraints on
+        the patched fn, even if the original_fn had a fixed set of
+        allowed args and kwargs.
+        """
+        def patch_fn(original_fn, self, *args, **kwargs):
+            return args, kwargs
+
+        utils.patch_method(self.cls, 'badfn')(patch_fn)
+        obj = self.cls()
+        self.assertEqual(obj.badfn(1, d=2), ((1,), {'d': 2}))
+        self.assertEqual(obj.badfn(1, d=2), ((1,), {'d': 2}))
+        self.assertEqual(obj.badfn(1, 2, c=1, d=2), ((1, 2), {'c': 1, 'd': 2}))
