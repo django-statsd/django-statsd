@@ -133,7 +133,7 @@ For example::
         statsd.incr('response.200')
 
 Django statsd will choose the client as specified in your config and send the
-data to it. You can change you client by specifying it in the config, the
+data to it. You can change your client by specifying it in the config, the
 default is::
 
         STATSD_CLIENT = 'django_statsd.clients.normal'
