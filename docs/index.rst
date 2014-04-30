@@ -308,6 +308,13 @@ do this by adding in the handler. For example in your logging configuration::
         },
     }
 
+Testing
+=======
+
+You can run tests with the following command:
+
+    DJANGO_SETTINGS_MODULE='django_statsd.test_settings' nosetests
+
 Nose
 ====
 
