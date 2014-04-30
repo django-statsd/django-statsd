@@ -7,7 +7,7 @@ DATABASES = {
 
 ROOT_URLCONF = ''
 STATSD_CLIENT = 'django_statsd.clients.null'
-STATSD_PREFIX = None,
+STATSD_PREFIX = None
 METLOG = None
 
 SECRET_KEY = 'secret'
