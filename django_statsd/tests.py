@@ -5,7 +5,9 @@ import sys
 from django.conf import settings
 from nose.exc import SkipTest
 from nose import tools as nose_tools
+from unittest import skipUnless
 
+from django import VERSION
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseForbidden
 from django.test import TestCase
@@ -15,7 +17,7 @@ from django.utils import unittest
 
 import mock
 from nose.tools import eq_
-from django_statsd.clients import get_client
+from django_statsd.clients import get_client, statsd
 from django_statsd.patches import utils
 from django_statsd import middleware
 
@@ -464,3 +466,90 @@ class TestPatchMethod(TestCase):
         self.assertEqual(obj.badfn(1, d=2), ((1,), {'d': 2}))
         self.assertEqual(obj.badfn(1, d=2), ((1,), {'d': 2}))
         self.assertEqual(obj.badfn(1, 2, c=1, d=2), ((1, 2), {'c': 1, 'd': 2}))
+
+
+class TestCursorWrapperPatching(TestCase):
+
+    def test_patched_callproc_calls_timer(self):
+        from django_statsd.patches.db import patched_callproc
+        with mock.patch.object(statsd, 'timer') as timer:
+            db = mock.Mock(executable_name='name', alias='alias')
+            instance = mock.Mock(db=db)
+            patched_callproc(lambda *args, **kwargs: None, instance)
+            self.assertEqual(timer.call_count, 1)
+
+    def test_patched_execute_calls_timer(self):
+        from django_statsd.patches.db import patched_execute
+        with mock.patch.object(statsd, 'timer') as timer:
+            db = mock.Mock(executable_name='name', alias='alias')
+            instance = mock.Mock(db=db)
+            patched_execute(lambda *args, **kwargs: None, instance)
+            self.assertEqual(timer.call_count, 1)
+
+    def test_patched_executemany_calls_timer(self):
+        from django_statsd.patches.db import patched_executemany
+        with mock.patch.object(statsd, 'timer') as timer:
+            db = mock.Mock(executable_name='name', alias='alias')
+            instance = mock.Mock(db=db)
+            patched_executemany(lambda *args, **kwargs: None, instance)
+            self.assertEqual(timer.call_count, 1)
+
+    @mock.patch(
+        'django_statsd.patches.db.pre_django_1_6_cursorwrapper_getattr')
+    @mock.patch('django_statsd.patches.db.patched_executemany')
+    @mock.patch('django_statsd.patches.db.patched_execute')
+    @mock.patch('django.db.backends.util.CursorDebugWrapper')
+    @skipUnless(VERSION < (1, 6, 0), "CursorWrapper Patching for Django<1.6")
+    def test_cursorwrapper_patching(self,
+                                    CursorDebugWrapper,
+                                    execute,
+                                    executemany,
+                                    _getattr):
+        try:
+            from django.db.backends import util
+
+            # We need to patch CursorWrapper like this because setting
+            # __getattr__ on Mock instances raises AttributeError.
+            class CursorWrapper(object):
+                pass
+
+            _CursorWrapper = util.CursorWrapper
+            util.CursorWrapper = CursorWrapper
+
+            from django_statsd.patches.db import patch
+            execute.__name__ = 'execute'
+            executemany.__name__ = 'executemany'
+            _getattr.__name__ = '_getattr'
+            execute.return_value = 'execute'
+            executemany.return_value = 'executemany'
+            _getattr.return_value = 'getattr'
+            patch()
+
+            self.assertEqual(CursorDebugWrapper.execute(), 'execute')
+            self.assertEqual(CursorDebugWrapper.executemany(), 'executemany')
+            self.assertEqual(CursorWrapper.__getattr__(), 'getattr')
+        finally:
+            util.CursorWrapper = _CursorWrapper
+
+    @mock.patch('django_statsd.patches.db.patched_callproc')
+    @mock.patch('django_statsd.patches.db.patched_executemany')
+    @mock.patch('django_statsd.patches.db.patched_execute')
+    @mock.patch('django.db.backends.util.CursorWrapper')
+    @skipUnless(VERSION >= (1, 6, 0), "CursorWrapper Patching for Django>=1.6")
+    def test_cursorwrapper_patching16(self,
+                                      CursorWrapper,
+                                      execute,
+                                      executemany,
+                                      callproc):
+        from django_statsd.patches.db import patch
+        execute.__name__ = 'execute'
+        executemany.__name__ = 'executemany'
+        callproc.__name__ = 'callproc'
+        execute.return_value = 'execute'
+        executemany.return_value = 'executemany'
+        callproc.return_value = 'callproc'
+        patch()
+
+        self.assertEqual(CursorWrapper.execute(), 'execute')
+        self.assertEqual(CursorWrapper.executemany(), 'executemany')
+        self.assertEqual(CursorWrapper.callproc(), 'callproc')
