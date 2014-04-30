@@ -6,22 +6,6 @@ from django.conf import settings
 from nose.exc import SkipTest
 from nose import tools as nose_tools
 
-minimal = {
-    'DATABASES': {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': 'mydatabase'
-        }
-    },
-    'ROOT_URLCONF': '',
-    'STATSD_CLIENT': 'django_statsd.clients.null',
-    'STATSD_PREFIX': None,
-    'METLOG': None
-}
-
-if not settings.configured:
-    settings.configure(**minimal)
-
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseForbidden
 from django.test import TestCase
