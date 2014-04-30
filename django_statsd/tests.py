@@ -19,6 +19,11 @@ import mock
 from nose.tools import eq_
 from django_statsd.clients import get_client, statsd
 from django_statsd.patches import utils
+from django_statsd.patches.db import (
+    patched_callproc,
+    patched_execute,
+    patched_executemany,
+)
 from django_statsd import middleware
 
 cfg = {
@@ -471,7 +476,6 @@ class TestPatchMethod(TestCase):
 class TestCursorWrapperPatching(TestCase):
 
     def test_patched_callproc_calls_timer(self):
-        from django_statsd.patches.db import patched_callproc
         with mock.patch.object(statsd, 'timer') as timer:
             db = mock.Mock(executable_name='name', alias='alias')
             instance = mock.Mock(db=db)
@@ -479,7 +483,6 @@ class TestCursorWrapperPatching(TestCase):
             self.assertEqual(timer.call_count, 1)
 
     def test_patched_execute_calls_timer(self):
-        from django_statsd.patches.db import patched_execute
         with mock.patch.object(statsd, 'timer') as timer:
             db = mock.Mock(executable_name='name', alias='alias')
             instance = mock.Mock(db=db)
@@ -487,7 +490,6 @@ class TestCursorWrapperPatching(TestCase):
             self.assertEqual(timer.call_count, 1)
 
     def test_patched_executemany_calls_timer(self):
-        from django_statsd.patches.db import patched_executemany
         with mock.patch.object(statsd, 'timer') as timer:
             db = mock.Mock(executable_name='name', alias='alias')
             instance = mock.Mock(db=db)
