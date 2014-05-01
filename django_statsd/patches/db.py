@@ -1,45 +1,54 @@
 import django
 from django.db.backends import util
-
-from django_statsd.patches.utils import wrap
+from django_statsd.patches.utils import wrap, patch_method
+from django_statsd.clients import statsd
 
 
 def key(db, attr):
     return 'db.%s.%s.%s' % (db.client.executable_name, db.alias, attr)
 
-
-def __getattr__(self, attr):
+def pre_django_1_6_cursorwrapper_getattr(self, attr):
     """
     The CursorWrapper is a pretty small wrapper around the cursor.
     If you are NOT in debug mode, this is the wrapper that's used.
     Sadly if it's in debug mode, we get a different wrapper.
     """
-    if django.VERSION < (1, 6) and self.db.is_managed():
-        # In Django 1.6 you can't put a connection in managed mode
+    if self.db.is_managed():
         self.db.set_dirty()
     if attr in self.__dict__:
         return self.__dict__[attr]
     else:
-        if attr in ['execute', 'executemany']:
+        if attr in ['execute', 'executemany', 'callproc']:
             return wrap(getattr(self.cursor, attr), key(self.db, attr))
         return getattr(self.cursor, attr)
 
-
-def wrap_class(base):
-    class Wrapper(base):
-        def execute(self, *args, **kw):
-            return wrap(super(Wrapper, self).execute,
-                        key(self.db, 'execute'))(*args, **kw)
-
-        def executemany(self, *args, **kw):
-            return wrap(super(Wrapper, self).executemany,
-                        key(self.db, 'executemany'))(*args, **kw)
-
-    return Wrapper
-
-
 def patch():
-    # So that it will work when DEBUG = True.
-    util.CursorDebugWrapper = wrap_class(util.CursorDebugWrapper)
-    # So that it will work when DEBUG = False.
-    util.CursorWrapper.__getattr__ = __getattr__
+    """
+    The CursorWrapper is a pretty small wrapper around the cursor.
+    If you are NOT in debug mode, this is the wrapper that's used.
+    Sadly if it's in debug mode, we get a different wrapper for version earlier than 1.6.
+    """
+
+    def execute(orig_execute, self, *args, **kwargs):
+        with statsd.timer(key(self.db, 'execute')):
+            return orig_execute(self, *args, **kwargs)
+
+    def executemany(orig_executemany, self, *args, **kwargs):
+        with statsd.timer(key(self.db, 'executemany')):
+            return orig_executemany(self, *args, **kwargs)
+
+    def callproc(orig_callproc, self, *args, **kwargs):
+        with statsd.timer(key(self.db, 'callproc')):
+            return orig_callproc(self, *args, **kwargs)
+
+    if django.VERSION > (1, 6):
+        # In 1.6+ util.CursorDebugWrapper just makes calls to CursorWrapper
+        # As such, we only need to instrument CursorWrapper.
+        # Instrumenting both will result in duplicated metrics
+        patch_method(util.CursorWrapper, 'execute')(execute)
+        patch_method(util.CursorWrapper, 'executemany')(executemany)
+        patch_method(util.CursorWrapper, 'callproc')(callproc)
+    else:
+        util.CursorWrapper.__getattr__ = pre_django_1_6_cursorwrapper_getattr
+        patch_method(util.CursorDebugWrapper, 'execute')(execute)
+        patch_method(util.CursorDebugWrapper, 'executemany')(executemany)
