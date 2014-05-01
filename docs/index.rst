@@ -16,6 +16,10 @@ Credits:
 Changes
 -------
 
+0.3.12:
+
+- Event better Django 1.6 support for the patches, with tests.
+
 0.3.11:
 
 - Django 1.6 support
@@ -338,6 +342,10 @@ Contributors
 * tomchristie
 * diox
 * frewsxcv
+* fud
+* ftobia
+* jawnb
+* fgallina
 
 See:
 
