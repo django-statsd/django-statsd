@@ -40,8 +40,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'django-statsd'
-copyright = u'2012, Andy McKay'
+project = 'django-statsd'
+copyright = '2012, Andy McKay'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -183,8 +183,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'django-statsd.tex', u'django-statsd Documentation',
-   u'Andy McKay', 'manual'),
+  ('index', 'django-statsd.tex', 'django-statsd Documentation',
+   'Andy McKay', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -213,8 +213,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'django-statsd', u'django-statsd Documentation',
-     [u'Andy McKay'], 1)
+    ('index', 'django-statsd', 'django-statsd Documentation',
+     ['Andy McKay'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -227,7 +227,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'django-statsd', u'django-statsd Documentation', u'Andy McKay',
+  ('index', 'django-statsd', 'django-statsd Documentation', 'Andy McKay',
    'django-statsd', 'One line description of project.', 'Miscellaneous'),
 ]
 

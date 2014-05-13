@@ -41,7 +41,7 @@ class NoseStatsd(Plugin):
             timings[k].append(v[2])
 
         counts = {}
-        for k, v in statsd.cache.items():
+        for k, v in list(statsd.cache.items()):
             k = k.split('|')[0]
             longest = max(longest, len(k))
             counts.setdefault(k, [])
