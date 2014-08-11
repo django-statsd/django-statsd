@@ -1,5 +1,5 @@
 mock
 nose
 unittest2
-statsd==1.0.0
-django<1.5
+statsd>=2.0.0
+django<1.6

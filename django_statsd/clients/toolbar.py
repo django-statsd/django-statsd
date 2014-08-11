@@ -31,10 +31,13 @@ class StatsClient(StatsClient):
         stat = '%s|count' % stat
         self.cache[stat].append([-count, rate])
 
-    def gauge(self, stat, value, rate=1):
+    def gauge(self, stat, value, rate=1, delta=False):
         """Set a gauge value."""
         stat = '%s|gauge' % stat
-        self.cache[stat] = [[value, rate]]
+        if delta:
+            self.cache[stat].append([value, rate])
+        else:
+            self.cache[stat] = [[value, rate]]
 
     def set(self, stat, value, rate=1):
         stat = '%s|set' % stat
