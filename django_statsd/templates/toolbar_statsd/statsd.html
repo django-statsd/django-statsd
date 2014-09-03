@@ -2,31 +2,57 @@
   data-graphite="{{ graphite }}"
   data-roots-timers="{% for root in timers %}{{ root }}{% if not forloop.last %}|{% endif %}{% endfor %}"
   data-roots-counts="{% for root in counts %}{{ root }}{% if not forloop.last %}|{% endif %}{% endfor %}">
-<table id="timings">
+<table id="timings-summary">
   <thead>
     <tr>
       <th>Stat</th>
-      <th class="timeline">Timing</th>
-      <th>Time</th>
+      <th>Count</th>
+      <th>Sum</th>
+      <th>Lower</th>
+      <th>Mean</th>
+      <th>Upper</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for value in timings_summary %}
+    <tr>
+      <td><a href="#" class="statsd" data-key="{{ value.stat }}" data-type="timing">{{ value.stat }}</a></td>
+      <td>{{ value.count }}</td>
+      <td>{{ value.sum }}</td>
+      <td>{{ value.lower }}</td>
+      <td>{{ value.mean|floatformat:"2" }}</td>
+      <td>{{ value.upper }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<table id="timings" style="display: table">
+  <thead>
+    <tr>
+      <th>Stat</th>
+      <th>Time (ms)</th>
+      <th class="timeline" style="width: 99%">Timing</th>
     </tr>
   </thead>
   <tbody>
     {% for value in timings %}
     <tr>
       <td><a href="#" class="statsd" data-key="{{ value.0 }}" data-type="timing">{{ value.0 }}</a></td>
+      <td>{{ value.3 }}</td>
       <td class="timeline">
         <div class="djDebugTimeline">
-          <div class="djDebugLineChart" style="left: {{ value.1 }}%;">
-            <strong style="width: {{ value.2 }}%; min-width: 1px; background: grey;">&nbsp;</strong>
+          <div class="djDebugLineChart djDebugLineChartSlave">
+            <strong style="background: lightgrey; width: 0">&nbsp;</strong>
+          </div>
+          <div class="djDebugLineChart djDebugLineChartActual" style="left: {{ value.1 }}%;">
+            <strong style="width: {{ value.2 }}%; background: grey;">&nbsp;</strong>
           </div>
       </div>
       </td>
-      <td>{{ value.3 }}ms</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
-
 <table>
   <thead>
     <tr>
@@ -57,7 +83,7 @@
 </table>
 </section>
 
-<div id="graphs" img="graphite?width=586&amp;height=308&amp;target=alias(secondYAxis(summarize(root.key.count, '60sec')), 'Count per minute')&amp;target=aliasByMetric(root.key)&amp;target=aliasByMetric(root.key.lower)&amp;target=aliasByMetric(root.key.mean)&amp;target=aliasByMetric(root.key.upper_90)&amp;from=-24hours&amp;title=24 hours"></div>
+<div id="graphs" img="graphite?width=586&amp;height=308&amp;target=root.key&amp;target=root.key.lower&amp;target=root.key.mean&amp;target=root.key.upper_90&amp;target=scale(root.key.count,0.1)&amp;from=-24hours&amp;title=24 hours"></div>
 
 <script type="text/javascript">
   // TODO: inlining is bad, this should be external.
@@ -77,13 +103,23 @@ $(document).ready(function() {
          }
          target.html('');
          $.each(roots, function(root) {
-            var custom = img.replace(/graphite/g, graphite)
-                            .replace(/root/g, roots[root])
-                            .replace(/key/g, that.attr('data-key'));
+            var custom = img.replace('graphite', graphite, 'g')
+                            .replace('root', roots[root], 'g')
+                            .replace('key', that.attr('data-key'), 'g');
                             target.append('<p><b>' + roots[root] + '.' + that.attr('data-key') + '</b></p><img src="' + custom + '">');
                             console.log(custom);
         })
       });
+
+      $('#djDebugStatsdPanel #timings td').click(function() {
+         var currentRow = $(this).parent(),
+             currentLine = currentRow.find('.djDebugLineChartActual'),
+             currentBar = currentLine.children('strong'),
+             table = currentLine.closest('table'),
+             barLeft = currentLine.position().left,
+             barWidth = currentBar.width();
+         table.find('.djDebugLineChartSlave').css('left', barLeft).find('strong').css('width', barWidth);
+              });
 })
 </script>
 
