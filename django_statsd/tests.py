@@ -474,27 +474,47 @@ class TestPatchMethod(TestCase):
 
 
 class TestCursorWrapperPatching(TestCase):
+    example_queries = {
+        'select': 'select * from something;',
+        'insert': 'insert (1, 2) into something;',
+        'update': 'update something set a=1;',
+    }
 
     def test_patched_callproc_calls_timer(self):
-        with mock.patch.object(statsd, 'timer') as timer:
-            db = mock.Mock(executable_name='name', alias='alias')
-            instance = mock.Mock(db=db)
-            patched_callproc(lambda *args, **kwargs: None, instance)
-            self.assertEqual(timer.call_count, 1)
+        for operation, query in self.example_queries.items():
+            with mock.patch.object(statsd, 'timer') as timer:
+                client = mock.Mock(executable_name='client_executable_name')
+                db = mock.Mock(executable_name='name', alias='alias', client=client)
+                instance = mock.Mock(db=db)
+
+                patched_callproc(lambda *args, **kwargs: None, instance, query)
+
+                self.assertEqual(timer.call_count, 1)
+                self.assertEqual(timer.call_args[0][0], 'db.client_executable_name.alias.callproc.%s' % operation)
 
     def test_patched_execute_calls_timer(self):
-        with mock.patch.object(statsd, 'timer') as timer:
-            db = mock.Mock(executable_name='name', alias='alias')
-            instance = mock.Mock(db=db)
-            patched_execute(lambda *args, **kwargs: None, instance)
-            self.assertEqual(timer.call_count, 1)
+        for operation, query in self.example_queries.items():
+            with mock.patch.object(statsd, 'timer') as timer:
+                client = mock.Mock(executable_name='client_executable_name')
+                db = mock.Mock(executable_name='name', alias='alias', client=client)
+                instance = mock.Mock(db=db)
+
+                patched_execute(lambda *args, **kwargs: None, instance, query)
+
+                self.assertEqual(timer.call_count, 1)
+                self.assertEqual(timer.call_args[0][0], 'db.client_executable_name.alias.execute.%s' % operation)
 
     def test_patched_executemany_calls_timer(self):
-        with mock.patch.object(statsd, 'timer') as timer:
-            db = mock.Mock(executable_name='name', alias='alias')
-            instance = mock.Mock(db=db)
-            patched_executemany(lambda *args, **kwargs: None, instance)
-            self.assertEqual(timer.call_count, 1)
+        for operation, query in self.example_queries.items():
+            with mock.patch.object(statsd, 'timer') as timer:
+                client = mock.Mock(executable_name='client_executable_name')
+                db = mock.Mock(executable_name='name', alias='alias', client=client)
+                instance = mock.Mock(db=db)
+
+                patched_executemany(lambda *args, **kwargs: None, instance, query)
+
+                self.assertEqual(timer.call_count, 1)
+                self.assertEqual(timer.call_args[0][0], 'db.client_executable_name.alias.executemany.%s' % operation)
 
     @mock.patch(
         'django_statsd.patches.db.pre_django_1_6_cursorwrapper_getattr')
