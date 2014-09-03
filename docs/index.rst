@@ -209,6 +209,17 @@ would look that up on the graphite server with the key::
 
         stats.addons.view.GET
 
+Celery signals integration
+--------------------------
+
+You can log all the ``task_sent``, ``task_prerun``, ``task_postrun`` and
+``task_failure`` signals of celery along with the duration of succesful tasks.
+
+To enable this, add the following to your Django settings::
+
+        STATSD_CELERY_SIGNALS = True
+
+
 Front end timing integration
 ----------------------------
 
