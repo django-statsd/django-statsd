@@ -5,7 +5,9 @@ env:
 python:
  - "2.6"
  - "2.7"
+ - "3.4"
  - "pypy"
+ - "pypy3"
 install:
  - pip install -r requirements.txt -r optional.txt --use-mirrors
  - pip install "Django<${DJANGO}" --use-mirrors
