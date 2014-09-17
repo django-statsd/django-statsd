@@ -1,6 +1,7 @@
 from django_statsd.clients import statsd
 from functools import partial, wraps
 
+
 def patch_method(target, name, external_decorator=None):
 
     def decorator(patch_function):
@@ -14,6 +15,7 @@ def patch_method(target, name, external_decorator=None):
         return wrapper
 
     return decorator
+
 
 def wrapped(method, key, *args, **kw):
     with statsd.timer(key):

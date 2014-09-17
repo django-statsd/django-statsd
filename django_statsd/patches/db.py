@@ -1,5 +1,6 @@
 import django
 from django.db.backends import util
+
 from django_statsd.patches.utils import wrap, patch_method
 from django_statsd.clients import statsd
 

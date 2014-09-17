@@ -65,12 +65,12 @@ def process_key(start, key, value):
 def _process_summaries(start, keys):
     calculated = {
         'network': keys['window.performance.timing.responseStart'] - start,
-        'app': keys['window.performance.timing.domLoading'] -
-               keys['window.performance.timing.responseStart'],
-        'dom': keys['window.performance.timing.domComplete'] -
-               keys['window.performance.timing.domLoading'],
-        'rendering': keys['window.performance.timing.loadEventEnd'] -
-                     keys['window.performance.timing.domComplete'],
+        'app': (keys['window.performance.timing.domLoading'] -
+                keys['window.performance.timing.responseStart']),
+        'dom': (keys['window.performance.timing.domComplete'] -
+                keys['window.performance.timing.domLoading']),
+        'rendering': (keys['window.performance.timing.loadEventEnd'] -
+                      keys['window.performance.timing.domComplete']),
     }
     for k, v in list(calculated.items()):
         # If loadEventEnd still does not get populated, we could end up with
@@ -81,7 +81,8 @@ def _process_summaries(start, keys):
 @require_http_methods(['GET', 'HEAD'])
 def _process_boomerang(request):
     if 'nt_nav_st' not in request.GET:
-        raise ValueError('nt_nav_st not in request.GET, make sure boomerang'
+        raise ValueError(
+            'nt_nav_st not in request.GET, make sure boomerang'
             ' is made with navigation API timings as per the following'
             ' http://yahoo.github.com/boomerang/doc/howtos/howto-9.html')
 
@@ -128,8 +129,8 @@ def _process_stick(request):
 
 
 clients = {
- 'boomerang': _process_boomerang,
- 'stick': _process_stick,
+    'boomerang': _process_boomerang,
+    'stick': _process_stick,
 }
 
 

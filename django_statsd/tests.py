@@ -108,8 +108,10 @@ class TestTiming(unittest.TestCase):
     def test_request_timing_tastypie(self, timing):
         func = lambda x: x
         gmw = middleware.TastyPieRequestTimingMiddleware()
-        gmw.process_view(self.req, func, tuple(), {'api_name': 'my_api_name',
-            'resource_name': 'my_resource_name'})
+        gmw.process_view(self.req, func, tuple(), {
+            'api_name': 'my_api_name',
+            'resource_name': 'my_resource_name'
+        })
         gmw.process_response(self.req, self.res)
         eq_(timing.call_count, 3)
         names = ['view.my_api_name.my_resource_name.GET',
