@@ -25,19 +25,22 @@ def pre_django_1_6_cursorwrapper_getattr(self, attr):
         return getattr(self.cursor, attr)
 
 
-def patched_execute(orig_execute, self, *args, **kwargs):
-    with statsd.timer(key(self.db, 'execute')):
-        return orig_execute(self, *args, **kwargs)
+def _get_query_type(query):
+    return (query.split(None, 1) or ['__empty__'])[0].lower()
 
 
-def patched_executemany(orig_executemany, self, *args, **kwargs):
-    with statsd.timer(key(self.db, 'executemany')):
-        return orig_executemany(self, *args, **kwargs)
+def patched_execute(orig_execute, self, query, *args, **kwargs):
+    with statsd.timer(key(self.db, 'execute.%s' % _get_query_type(query))):
+        return orig_execute(self, query, *args, **kwargs)
+
+def patched_executemany(orig_executemany, self, query, *args, **kwargs):
+    with statsd.timer(key(self.db, 'executemany.%s' % _get_query_type(query))):
+        return orig_executemany(self, query, *args, **kwargs)
 
 
-def patched_callproc(orig_callproc, self, *args, **kwargs):
-    with statsd.timer(key(self.db, 'callproc')):
-        return orig_callproc(self, *args, **kwargs)
+def patched_callproc(orig_callproc, self, query, *args, **kwargs):
+    with statsd.timer(key(self.db, 'callproc.%s' % _get_query_type(query))):
+        return orig_callproc(self, query, *args, **kwargs)
 
 
 def patch():
