@@ -16,6 +16,14 @@ Credits:
 Changes
 -------
 
+0.3.13:
+
+- pypy testing support
+- log model changes
+- log celery events
+- log db queries
+- show lower/mean/upper values in debugbar, thanks jonathanslenders!
+
 0.3.12:
 
 - Event better Django 1.6 support for the patches, with tests.
@@ -364,6 +372,7 @@ Contributors
 * ftobia
 * jawnb
 * fgallina
+* jonathanslenders
 
 See:
 
