@@ -5,7 +5,12 @@ import sys
 from django.conf import settings
 from nose.exc import SkipTest
 from nose import tools as nose_tools
-from unittest2 import skipUnless
+try:
+    # Python 2.7, Python 3.x
+    from unittest import skipUnless
+except ImportError:
+    # Python 2.6
+    from unittest2 import skipUnless
 
 from django import VERSION
 from django.core.urlresolvers import reverse
