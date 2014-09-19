@@ -209,6 +209,14 @@ would look that up on the graphite server with the key::
 
         stats.addons.view.GET
 
+Django Model save and delete integration
+----------------------------------------
+
+You can log all create, update and delete events of django models.
+Add to your Django settings::
+
+        STATSD_MODEL_SIGNALS = True
+
 Celery signals integration
 --------------------------
 
@@ -218,7 +226,6 @@ You can log all the ``task_sent``, ``task_prerun``, ``task_postrun`` and
 To enable this, add the following to your Django settings::
 
         STATSD_CELERY_SIGNALS = True
-
 
 Front end timing integration
 ----------------------------
