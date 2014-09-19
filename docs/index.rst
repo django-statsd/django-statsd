@@ -16,7 +16,7 @@ Credits:
 Changes
 -------
 
-0.3.13:
+0.3.14:
 
 - pypy testing support
 - log model changes
