@@ -373,6 +373,7 @@ Contributors
 * jawnb
 * fgallina
 * jonathanslenders
+* streeter
 
 See:
 
