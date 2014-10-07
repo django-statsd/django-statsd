@@ -35,6 +35,6 @@ def model_delete(sender, **kwargs):
         instance._meta.object_name,
     ))
 
-if getattr(settings, 'STATSD_MODEL_SIGNALS', True):
+if getattr(settings, 'STATSD_MODEL_SIGNALS', False):
     post_save.connect(model_save)
     post_delete.connect(model_delete)
