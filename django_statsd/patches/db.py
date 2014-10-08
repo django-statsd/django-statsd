@@ -33,6 +33,7 @@ def patched_execute(orig_execute, self, query, *args, **kwargs):
     with statsd.timer(key(self.db, 'execute.%s' % _get_query_type(query))):
         return orig_execute(self, query, *args, **kwargs)
 
+
 def patched_executemany(orig_executemany, self, query, *args, **kwargs):
     with statsd.timer(key(self.db, 'executemany.%s' % _get_query_type(query))):
         return orig_executemany(self, query, *args, **kwargs)
