@@ -10,7 +10,11 @@ python:
  - "pypy3"
 install:
  - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi
- - pip install -r requirements.txt -r optional.txt --use-mirrors
+ - pip install -r requirements.txt --use-mirrors
+
+ # metlog-py doesn't support Python 3
+ - if [[ $TRAVIS_PYTHON_VERSION == 2* ]]; then pip install -r optional.txt --use-mirrors; fi
+
  - pip install "Django<${DJANGO}" --use-mirrors
 script: DJANGO_SETTINGS_MODULE='django_statsd.test_settings' nosetests
 notifications:
