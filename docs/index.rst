@@ -168,6 +168,14 @@ To get timings for your database or your cache, put in some monkeypatches::
                 'django_statsd.patches.cache',
         ]
 
+You can change the host that stats are sent to with the `STATSD_HOST` setting::
+
+        STATSD_HOST = 'localhost'
+
+Similarly, you can use the `STATSD_PORT`setting to customize the port number (which defaults to `8125`)::
+
+        STATSD_PORT = 8125
+
 Toolbar integration
 -------------------
 
