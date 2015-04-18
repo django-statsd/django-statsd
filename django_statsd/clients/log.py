@@ -22,4 +22,5 @@ class StatsClient(StatsClient):
 
     def gauge(self, stat, value, rate=1, delta=False):
         """Set a gauge value."""
-        log.info('Gauge: %s, %s%s, %s' % (stat, '' if not delta else 'diff ', value , rate))
+        log.info('Gauge: %s, %s%s, %s' % (
+            stat, '' if not delta else 'diff ', value, rate))

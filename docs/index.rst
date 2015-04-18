@@ -345,6 +345,12 @@ You can run tests with the following command:
 
     DJANGO_SETTINGS_MODULE='django_statsd.test_settings' nosetests
 
+If you wish test with Python 2.6, make sure to install the unittest2_ module with the following command:
+
+    pip install unittest2
+
+.. _unittest2: https://pypi.python.org/pypi/unittest2
+
 Nose
 ====
 

@@ -330,13 +330,15 @@ class TestRecord(TestCase):
                                {'client': 'boomerang'}).status_code == 400
 
     def test_boomerang_minimum(self):
-        assert self.client.get(self.url,
-                               {'client': 'boomerang',
-                                'nt_nav_st': 1}).content == 'recorded'
+        content = self.client.get(self.url,
+                                  {'client': 'boomerang',
+                                   'nt_nav_st': 1}).content.decode()
+        assert(content == 'recorded')
 
     @mock.patch('django_statsd.views.process_key')
     def test_boomerang_something(self, process_key):
-        assert self.client.get(self.url, self.good).content == 'recorded'
+        content = self.client.get(self.url, self.good).content.decode()
+        assert content == 'recorded'
         assert process_key.called
 
     def test_boomerang_post(self):
