@@ -326,6 +326,13 @@ everyone not in INTERNAL_IPS::
 
         STATSD_RECORD_GUARD = internal_only
 
+STATSD_VIEW_TIMER_DETAILS (optional)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The middleware sends timing pings for the almost the same thing three times
+when accessing a view: `module.name.method`, `module.method` and `method` by
+default. Setting this to `False` just does the former.
+
 Logging errors
 ~~~~~~~~~~~~~~
 

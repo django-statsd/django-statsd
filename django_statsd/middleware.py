@@ -1,6 +1,7 @@
 import inspect
 import time
 
+from django.conf import settings
 from django.http import Http404
 
 from django_statsd.clients import statsd
@@ -48,8 +49,9 @@ class GraphiteRequestTimingMiddleware(object):
             data = dict(module=request._view_module, name=request._view_name,
                         method=request.method)
             statsd.timing('view.{module}.{name}.{method}'.format(**data), ms)
-            statsd.timing('view.{module}.{method}'.format(**data), ms)
-            statsd.timing('view.{method}'.format(**data), ms)
+            if getattr(settings, 'STATSD_VIEW_TIMER_DETAILS', True):
+                statsd.timing('view.{module}.{method}'.format(**data), ms)
+                statsd.timing('view.{method}'.format(**data), ms)
 
 
 class TastyPieRequestTimingMiddleware(GraphiteRequestTimingMiddleware):
