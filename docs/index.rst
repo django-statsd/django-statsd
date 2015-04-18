@@ -16,6 +16,12 @@ Credits:
 Changes
 -------
 
+0.3.15:
+
+- push from travis to pypi to keep files clean
+- allow less statsd in the middleware
+- fix to a specific statsd version
+
 0.3.14:
 
 - pypy testing support
