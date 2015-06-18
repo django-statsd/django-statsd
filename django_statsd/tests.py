@@ -537,8 +537,10 @@ class TestCursorWrapperPatching(TestCase):
                                     executemany,
                                     _getattr):
         try:
+            from django.db.backends import utils as util
+        except ImportError:
             from django.db.backends import util
-
+        try:
             # We need to patch CursorWrapper like this because setting
             # __getattr__ on Mock instances raises AttributeError.
             class CursorWrapper(object):
