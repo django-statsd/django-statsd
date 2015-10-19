@@ -490,7 +490,7 @@ class TestCursorWrapperPatching(TestCase):
     }
 
     def test_patched_callproc_calls_timer(self):
-        for operation, query in self.example_queries.items():
+        for operation, query in list(self.example_queries.items()):
             with mock.patch.object(statsd, 'timer') as timer:
                 client = mock.Mock(executable_name='client_executable_name')
                 db = mock.Mock(executable_name='name', alias='alias', client=client)
@@ -502,7 +502,7 @@ class TestCursorWrapperPatching(TestCase):
                 self.assertEqual(timer.call_args[0][0], 'db.client_executable_name.alias.callproc.%s' % operation)
 
     def test_patched_execute_calls_timer(self):
-        for operation, query in self.example_queries.items():
+        for operation, query in list(self.example_queries.items()):
             with mock.patch.object(statsd, 'timer') as timer:
                 client = mock.Mock(executable_name='client_executable_name')
                 db = mock.Mock(executable_name='name', alias='alias', client=client)
@@ -514,7 +514,7 @@ class TestCursorWrapperPatching(TestCase):
                 self.assertEqual(timer.call_args[0][0], 'db.client_executable_name.alias.execute.%s' % operation)
 
     def test_patched_executemany_calls_timer(self):
-        for operation, query in self.example_queries.items():
+        for operation, query in list(self.example_queries.items()):
             with mock.patch.object(statsd, 'timer') as timer:
                 client = mock.Mock(executable_name='client_executable_name')
                 db = mock.Mock(executable_name='name', alias='alias', client=client)
