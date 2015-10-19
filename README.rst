@@ -1,4 +1,11 @@
 ============================
+Looking for a maintainer
+============================
+
+I really don't work on Django Statsd anymore. I'm keen to find a maintainer or
+someone who would like to look after this project long term.
+
+============================
 Django Statsd |Build Status|
 ============================
 
