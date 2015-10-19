@@ -58,7 +58,7 @@ def times_summary(stats):
     for stat in stats:
         timings[stat[0].split('|')[0]].append(stat[2])
 
-    for stat, v in timings.iteritems():
+    for stat, v in timings.items():
         if not v:
             continue
         v.sort()
