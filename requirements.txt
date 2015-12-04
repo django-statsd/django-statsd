@@ -1,4 +1,4 @@
 mock
 nose
-statsd==2.1.2
-django<1.7
+statsd==3.2.1
+django<1.10
