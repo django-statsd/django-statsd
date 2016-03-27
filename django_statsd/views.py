@@ -146,10 +146,10 @@ def record(request):
     you need for imposing security on this method, so that not just anyone
     can post to it.
     """
-    if 'client' not in request.REQUEST:
+    if 'client' not in request:
         return http.HttpResponseBadRequest()
 
-    client = request.REQUEST['client']
+    client = request['client']
     if client not in clients:
         return http.HttpResponseBadRequest()
 
