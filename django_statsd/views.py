@@ -135,6 +135,7 @@ clients = {
 
 
 @csrf_exempt
+@require_http_methods(["POST"])
 def record(request):
     """
     This is a Django method you can link to in your URLs that process
@@ -146,10 +147,10 @@ def record(request):
     you need for imposing security on this method, so that not just anyone
     can post to it.
     """
-    if 'client' not in request.REQUEST:
+    if 'client' not in request.POST:
         return http.HttpResponseBadRequest()
 
-    client = request.REQUEST['client']
+    client = request.POST.get('client')
     if client not in clients:
         return http.HttpResponseBadRequest()
 
