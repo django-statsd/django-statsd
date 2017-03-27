@@ -29,6 +29,8 @@ setup(
         'Intended Audience :: Developers',
         'Natural Language :: English',
         'Operating System :: OS Independent',
-        'Framework :: Django'
+        'Framework :: Django',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3'
     ]
 )
