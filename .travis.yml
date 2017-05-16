@@ -1,24 +1,54 @@
 language: python
-env:
- - DJANGO=1.6
- - DJANGO=1.7
- - DJANGO=1.8
- - DJANGO=1.9
- - DJANGO=1.10
+
+sudo: false
+
 python:
- - "2.6"
- - "2.7"
- - "3.4"
- - "pypy"
- - "pypy3"
+    - "2.7"
+    - "3.4"
+    - "3.5"
+    - "pypy"
+    - "pypy3"
+
+env:
+    - DJANGO=1.8
+    - DJANGO=1.9
+    - DJANGO=1.10
+    - DJANGO=1.11
+    - DJANGO=master
+
+matrix:
+    fast_finish: true
+    include:
+      - python: "3.6"
+        env: DJANGO=master
+      - python: "3.6"
+        env: DJANGO=1.11
+      - python: "3.3"
+        env: DJANGO=1.8
+      - python: "2.7"
+        env: TOXENV="lint"
+      - python: "2.7"
+        env: TOXENV="docs"
+    exclude:
+      - python: "2.7"
+        env: DJANGO=master
+      - python: "3.4"
+        env: DJANGO=master
+
+    allow_failures:
+      - env: DJANGO=1.11
+      - env: DJANGO=master
+
 install:
- - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi
  - pip install -r requirements.txt
 
  # metlog-py doesn't support Python 3
  - if [[ $TRAVIS_PYTHON_VERSION == 2* ]]; then pip install -r optional.txt; fi
 
  - pip install "Django<${DJANGO}"
+
 script: DJANGO_SETTINGS_MODULE='django_statsd.test_settings' nosetests
+
 notifications:
-  irc: "irc.mozilla.org#amo-bots"
+    email: false
+    irc: "irc.mozilla.org#amo-bots"
