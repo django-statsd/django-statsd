@@ -1,6 +1,8 @@
 import json
 import logging
 import sys
+import unittest
+from logging.config import dictConfig
 
 from django.conf import settings
 from nose.exc import SkipTest
@@ -17,8 +19,6 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseForbidden
 from django.test import TestCase
 from django.test.client import RequestFactory
-from django.utils import dictconfig
-from django.utils import unittest
 
 import mock
 from nose.tools import eq_
@@ -320,24 +320,28 @@ class TestRecord(TestCase):
                       'window.performance.navigation.type': 1}
 
     def test_no_client(self):
-        assert self.client.get(self.url).status_code == 400
+        response = self.client.post(self.url)
+        assert response.status_code == 400, response.status_code
 
     def test_no_valid_client(self):
-        assert self.client.get(self.url, {'client': 'no'}).status_code == 400
+        response = self.client.post(self.url, {'client': 'no'})
+        assert response.status_code == 400, response.status_code
 
     def test_boomerang_almost(self):
-        assert self.client.get(self.url,
-                               {'client': 'boomerang'}).status_code == 400
+        response = self.client.post(self.url, {'client': 'boomerang'})
+        assert response.status_code == 400, response.status_code
 
     def test_boomerang_minimum(self):
-        content = self.client.get(self.url,
-                                  {'client': 'boomerang',
-                                   'nt_nav_st': 1}).content.decode()
-        assert(content == 'recorded')
+        content = self.client.post(
+            self.url, {
+                'client': 'boomerang',
+                'nt_nav_st': 1,
+            }).content.decode()
+        assert(content == 'recorded'), content
 
     @mock.patch('django_statsd.views.process_key')
     def test_boomerang_something(self, process_key):
-        content = self.client.get(self.url, self.good).content.decode()
+        content = self.client.post(self.url, self.good).content.decode()
         assert content == 'recorded'
         assert process_key.called
 
@@ -346,11 +350,12 @@ class TestRecord(TestCase):
 
     def test_good_guard(self):
         settings.STATSD_RECORD_GUARD = lambda r: None
-        assert self.client.get(self.url, self.good).status_code == 200
+        assert self.client.post(self.url, self.good).status_code == 200
 
     def test_bad_guard(self):
         settings.STATSD_RECORD_GUARD = lambda r: HttpResponseForbidden()
-        assert self.client.get(self.url, self.good).status_code == 403
+        response = self.client.post(self.url, self.good)
+        assert response.status_code == 403, response.status_code
 
     def test_stick_get(self):
         assert self.client.get(self.url, self.stick).status_code == 405
@@ -392,7 +397,7 @@ class TestRecord(TestCase):
 class TestErrorLog(TestCase):
 
     def setUp(self):
-        dictconfig.dictConfig(cfg)
+        dictConfig(cfg)
         self.log = logging.getLogger('test.logging')
 
     def division_error(self):
