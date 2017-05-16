@@ -14,5 +14,5 @@ Portions of this are from commonware:
 
 https://github.com/jsocol/commonware/blob/master/LICENSE
 
-.. |Build Status| image:: https://travis-ci.org/andymckay/django-statsd.svg?branch=master
+.. |Build Status| image:: https://travis-ci.org/django-statsd/django-statsd.svg?branch=master
    :target: https://travis-ci.org/andymckay/django-statsd
