@@ -321,15 +321,15 @@ class TestRecord(TestCase):
 
     def test_no_client(self):
         response = self.client.post(self.url)
-        assert response.status_code == 400, response.status_code
+        assert response.status_code == 400
 
     def test_no_valid_client(self):
         response = self.client.post(self.url, {'client': 'no'})
-        assert response.status_code == 400, response.status_code
+        assert response.status_code == 400
 
     def test_boomerang_almost(self):
         response = self.client.post(self.url, {'client': 'boomerang'})
-        assert response.status_code == 400, response.status_code
+        assert response.status_code == 400
 
     def test_boomerang_minimum(self):
         content = self.client.post(
@@ -337,7 +337,7 @@ class TestRecord(TestCase):
                 'client': 'boomerang',
                 'nt_nav_st': 1,
             }).content.decode()
-        assert(content == 'recorded'), content
+        assert content == 'recorded'
 
     @mock.patch('django_statsd.views.process_key')
     def test_boomerang_something(self, process_key):
@@ -355,7 +355,7 @@ class TestRecord(TestCase):
     def test_bad_guard(self):
         settings.STATSD_RECORD_GUARD = lambda r: HttpResponseForbidden()
         response = self.client.post(self.url, self.good)
-        assert response.status_code == 403, response.status_code
+        assert response.status_code == 403
 
     def test_stick_get(self):
         assert self.client.get(self.url, self.stick).status_code == 405
