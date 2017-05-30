@@ -32,7 +32,6 @@ matrix:
         env: DJANGO=master
 
     allow_failures:
-      - env: DJANGO=1.11
       - env: DJANGO=master
       - python: "pypy"
       - python: "pypy3"
