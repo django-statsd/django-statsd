@@ -264,11 +264,11 @@ First, make sure you can record the timings in your Django site urls. This
 could be done by pointing straight to the view or including the URL for
 example::
 
-        from django_statsd.urls import urlpatterns as statsd_patterns
+    from django_statsd.urls import urlpatterns as statsd_patterns
 
-        urlpatterns = patterns('',
-                ('^services/timing/', include(statsd_patterns)),
-        )
+    urlpatterns = [
+        url(r'^services/timing/', include(statsd_patterns)),
+    ]
 
 In this case the URL to the record view will be `/services/timing/record`.
 
