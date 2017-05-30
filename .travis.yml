@@ -1,13 +1,13 @@
 language: python
 
-sudo: false
-
 python:
     - "2.7"
     - "3.4"
     - "3.5"
     - "pypy"
     - "pypy3"
+
+sudo: false
 
 env:
     - DJANGO=1.8
@@ -32,19 +32,15 @@ matrix:
         env: DJANGO=master
 
     allow_failures:
-      - env: DJANGO=1.11
       - env: DJANGO=master
+      - python: "pypy"
+      - python: "pypy3"
 
 install:
- - pip install -r requirements.txt
+    - pip install tox tox-travis
 
- # metlog-py doesn't support Python 3
- - if [[ $TRAVIS_PYTHON_VERSION == 2* ]]; then pip install -r optional.txt; fi
-
- - pip install "Django<${DJANGO}"
-
-script: DJANGO_SETTINGS_MODULE='django_statsd.test_settings' nosetests
+script:
+    - tox
 
 notifications:
     email: false
-    irc: "irc.mozilla.org#amo-bots"

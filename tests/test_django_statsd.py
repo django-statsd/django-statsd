@@ -1,24 +1,20 @@
 import json
-import logging
+import logging.config
 import sys
+import unittest
 
 from django.conf import settings
 from nose.exc import SkipTest
 from nose import tools as nose_tools
-try:
-    # Python 2.7, Python 3.x
-    from unittest import skipUnless
-except ImportError:
-    # Python 2.6
-    from unittest2 import skipUnless
 
-from django import VERSION
-from django.core.urlresolvers import reverse
+try:
+    from django.urls import reverse
+except ImportError:
+    from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseForbidden
 from django.test import TestCase
 from django.test.client import RequestFactory
-from django.utils import dictconfig
-from django.utils import unittest
+from django.utils.http import urlencode
 
 import mock
 from nose.tools import eq_
@@ -320,20 +316,24 @@ class TestRecord(TestCase):
                       'window.performance.navigation.type': 1}
 
     def test_no_client(self):
-        assert self.client.get(self.url).status_code == 400
+        response = self.client.get(self.url)
+        assert response.status_code == 400
 
     def test_no_valid_client(self):
-        assert self.client.get(self.url, {'client': 'no'}).status_code == 400
+        response = self.client.get(self.url, {'client': 'no'})
+        assert response.status_code == 400
 
     def test_boomerang_almost(self):
-        assert self.client.get(self.url,
-                               {'client': 'boomerang'}).status_code == 400
+        response = self.client.get(self.url, {'client': 'boomerang'})
+        assert response.status_code == 400
 
     def test_boomerang_minimum(self):
-        content = self.client.get(self.url,
-                                  {'client': 'boomerang',
-                                   'nt_nav_st': 1}).content.decode()
-        assert(content == 'recorded')
+        content = self.client.get(
+            self.url, {
+                'client': 'boomerang',
+                'nt_nav_st': 1,
+            }).content.decode()
+        assert content == 'recorded'
 
     @mock.patch('django_statsd.views.process_key')
     def test_boomerang_something(self, process_key):
@@ -342,15 +342,17 @@ class TestRecord(TestCase):
         assert process_key.called
 
     def test_boomerang_post(self):
-        assert self.client.post(self.url, self.good).status_code == 405
+        assert self.client.post(self.url + '?' + urlencode(self.good), self.good).status_code == 405
 
     def test_good_guard(self):
         settings.STATSD_RECORD_GUARD = lambda r: None
-        assert self.client.get(self.url, self.good).status_code == 200
+        response = self.client.get(self.url, self.good)
+        assert response.status_code == 200
 
     def test_bad_guard(self):
         settings.STATSD_RECORD_GUARD = lambda r: HttpResponseForbidden()
-        assert self.client.get(self.url, self.good).status_code == 403
+        response = self.client.get(self.url, self.good)
+        assert response.status_code == 403
 
     def test_stick_get(self):
         assert self.client.get(self.url, self.stick).status_code == 405
@@ -392,7 +394,7 @@ class TestRecord(TestCase):
 class TestErrorLog(TestCase):
 
     def setUp(self):
-        dictconfig.dictConfig(cfg)
+        logging.config.dictConfig(cfg)
         self.log = logging.getLogger('test.logging')
 
     def division_error(self):
@@ -525,55 +527,11 @@ class TestCursorWrapperPatching(TestCase):
                 self.assertEqual(timer.call_count, 1)
                 self.assertEqual(timer.call_args[0][0], 'db.client_executable_name.alias.executemany.%s' % operation)
 
-    @mock.patch(
-        'django_statsd.patches.db.pre_django_1_6_cursorwrapper_getattr')
-    @mock.patch('django_statsd.patches.db.patched_executemany')
-    @mock.patch('django_statsd.patches.db.patched_execute')
-    @mock.patch('django.db.backends.util.CursorDebugWrapper')
-    @skipUnless(VERSION < (1, 6, 0), "CursorWrapper Patching for Django<1.6")
-    def test_cursorwrapper_patching(self,
-                                    CursorDebugWrapper,
-                                    execute,
-                                    executemany,
-                                    _getattr):
-        try:
-            from django.db.backends import utils as util
-        except ImportError:
-            from django.db.backends import util
-        try:
-            # We need to patch CursorWrapper like this because setting
-            # __getattr__ on Mock instances raises AttributeError.
-            class CursorWrapper(object):
-                pass
-
-            _CursorWrapper = util.CursorWrapper
-            util.CursorWrapper = CursorWrapper
-
-            from django_statsd.patches.db import patch
-            execute.__name__ = 'execute'
-            executemany.__name__ = 'executemany'
-            _getattr.__name__ = '_getattr'
-            execute.return_value = 'execute'
-            executemany.return_value = 'executemany'
-            _getattr.return_value = 'getattr'
-            patch()
-
-            self.assertEqual(CursorDebugWrapper.execute(), 'execute')
-            self.assertEqual(CursorDebugWrapper.executemany(), 'executemany')
-            self.assertEqual(CursorWrapper.__getattr__(), 'getattr')
-        finally:
-            util.CursorWrapper = _CursorWrapper
-
     @mock.patch('django_statsd.patches.db.patched_callproc')
     @mock.patch('django_statsd.patches.db.patched_executemany')
     @mock.patch('django_statsd.patches.db.patched_execute')
-    @mock.patch('django.db.backends.util.CursorWrapper')
-    @skipUnless(VERSION >= (1, 6, 0), "CursorWrapper Patching for Django>=1.6")
-    def test_cursorwrapper_patching16(self,
-                                      CursorWrapper,
-                                      execute,
-                                      executemany,
-                                      callproc):
+    @mock.patch('django.db.backends.utils.CursorWrapper')
+    def test_cursorwrapper_patching(self, CursorWrapper, execute, executemany, callproc):
         from django_statsd.patches.db import patch
         execute.__name__ = 'execute'
         executemany.__name__ = 'executemany'
