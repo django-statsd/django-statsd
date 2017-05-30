@@ -362,15 +362,20 @@ do this by adding in the handler. For example in your logging configuration::
 Testing
 =======
 
-You can run tests with the following command:
+You need to install tox_ to run the tests.
+You can run the full test matrix with:
 
-    DJANGO_SETTINGS_MODULE='django_statsd.test_settings' nosetests
+    tox
 
-If you wish test with Python 2.6, make sure to install the unittest2_ module with the following command:
+or choose a specific environment - let's say Python 3.4 and Django 1.11 - with:
 
-    pip install unittest2
+    tox -e py34-django111
 
-.. _unittest2: https://pypi.python.org/pypi/unittest2
+You can list all the available environments with:
+
+    tox -l
+
+.. _tox: http://tox.readthedocs.io/en/latest/index.html
 
 Nose
 ====
