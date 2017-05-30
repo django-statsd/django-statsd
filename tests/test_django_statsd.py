@@ -1,24 +1,20 @@
 import json
-import logging
+import logging.config
 import sys
 import unittest
-from logging.config import dictConfig
 
 from django.conf import settings
 from nose.exc import SkipTest
 from nose import tools as nose_tools
-try:
-    # Python 2.7, Python 3.x
-    from unittest import skipUnless
-except ImportError:
-    # Python 2.6
-    from unittest2 import skipUnless
 
-from django import VERSION
-from django.core.urlresolvers import reverse
+try:
+    from django.urls import reverse
+except ImportError:
+    from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseForbidden
 from django.test import TestCase
 from django.test.client import RequestFactory
+from django.utils.http import urlencode
 
 import mock
 from nose.tools import eq_
@@ -398,7 +394,7 @@ class TestRecord(TestCase):
 class TestErrorLog(TestCase):
 
     def setUp(self):
-        dictConfig(cfg)
+        logging.config.dictConfig(cfg)
         self.log = logging.getLogger('test.logging')
 
     def division_error(self):
