@@ -1,6 +1,7 @@
 import inspect
 import time
 
+from django import VERSION as DJANGO_VERSION
 from django.conf import settings
 from django.http import Http404
 
@@ -14,18 +15,24 @@ except ImportError:
         pass
 
 
+def is_authenticated(user):
+    if DJANGO_VERSION < (1, 10):
+        return user.is_authenticated()
+    return user.is_authenticated
+
+
 class GraphiteMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         statsd.incr('response.%s' % response.status_code)
-        if hasattr(request, 'user') and request.user.is_authenticated():
+        if hasattr(request, 'user') and is_authenticated(request.user):
             statsd.incr('response.auth.%s' % response.status_code)
         return response
 
     def process_exception(self, request, exception):
         if not isinstance(exception, Http404):
             statsd.incr('response.500')
-            if hasattr(request, 'user') and request.user.is_authenticated():
+            if hasattr(request, 'user') and is_authenticated(request.user):
                 statsd.incr('response.auth.500')
 
 
