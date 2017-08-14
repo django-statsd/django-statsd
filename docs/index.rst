@@ -158,10 +158,10 @@ default is::
 
 To send timings or counts with every request, add in some middleware::
 
-        MIDDLEWARE_CLASSES = (
-                'django_statsd.middleware.GraphiteRequestTimingMiddleware',
-                'django_statsd.middleware.GraphiteMiddleware',
-                ) + MIDDLEWARE_CLASSES
+        MIDDLEWARE = [
+            'django_statsd.middleware.GraphiteRequestTimingMiddleware',
+            'django_statsd.middleware.GraphiteMiddleware',
+        ] + MIDDLEWARE
 
 If you are using tastypie, you might enjoy::
 
@@ -194,9 +194,9 @@ Make sure `django_statsd` is installed::
 
 This will show you the statsd timings in the toolbar::
 
-        MIDDLEWARE_CLASSES = (
-                'debug_toolbar.middleware.DebugToolbarMiddleware',
-                ) + MIDDLEWARE_CLASSES
+        MIDDLEWARE = [
+            'debug_toolbar.middleware.DebugToolbarMiddleware',
+        ] + MIDDLEWARE
 
 Note: this must go before the GraphiteMiddleware so that we've got the timing
 data in before we show the toolbar panel.
