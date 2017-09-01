@@ -1,4 +1,3 @@
-from optparse import make_option
 import time
 
 from django.core.management.base import BaseCommand
@@ -14,10 +13,10 @@ class Command(BaseCommand):
 
     `key`: key.to.ping.with
     """
-    option_list = BaseCommand.option_list + (
-        make_option('--key', action='store', type='string',
-                    dest='key', help='Key to ping'),
-    )
+
+    def add_arguments(self, parser):
+        parser.add_argument('--key', action='store', type=str,
+                            dest='key', help='Key to ping')
 
     def handle(self, *args, **kw):
         statsd.timing(kw.get('key'), time.time())
