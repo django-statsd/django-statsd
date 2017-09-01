@@ -16,6 +16,10 @@ Credits:
 Changes
 -------
 
+0.4.0:
+
+- Django 1.8, 1.9, 1.10, 1.11 support (other versions are droped).
+
 0.3.15:
 
 - push from travis to pypi to keep files clean

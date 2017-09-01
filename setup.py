@@ -4,7 +4,7 @@ from setuptools import setup
 setup(
     # Because django-statsd was taken, I called this django-statsd-mozilla.
     name='django-statsd-mozilla',
-    version='0.3.16',
+    version='0.4.0',
     description='Django interface with statsd',
     long_description=open('README.rst').read(),
     author='Andy McKay',
@@ -17,7 +17,7 @@ setup(
               'django_statsd/loggers',
               'django_statsd/management',
               'django_statsd/management/commands'],
-    url='https://github.com/andymckay/django-statsd',
+    url='https://github.com/django-statsd/django-statsd',
     entry_points={
         'nose.plugins.0.10': [
             'django_statsd = django_statsd:NoseStatsd'
