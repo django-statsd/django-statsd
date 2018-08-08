@@ -2,6 +2,7 @@ import json
 import logging.config
 import sys
 import unittest
+from collections import deque
 
 from django.conf import settings
 from nose.exc import SkipTest
@@ -42,6 +43,31 @@ cfg = {
         },
     },
 }
+
+
+class FakeSocket(object):
+    """A fake socket for testing.
+
+    Directly copied from DataDog/datadogpy.
+    """
+
+    def __init__(self):
+        self.payloads = deque()
+
+    def send(self, payload):
+        self.payloads.append(payload)
+
+    def recv(self):
+        try:
+            return self.payloads.popleft().decode('utf-8')
+        except IndexError:
+            return None
+
+    def close(self):
+        pass
+
+    def __repr__(self):
+        return str(self.payloads)
 
 
 @mock.patch.object(middleware.statsd, 'incr')
@@ -164,6 +190,23 @@ class TestClient(unittest.TestCase):
         eq_(client.cache, {})
         client.incr('testing')
         eq_(client.cache, {'testing|count': [[1, 1]]})
+
+    @mock.patch.object(settings, 'STATSD_CLIENT',
+                       'django_statsd.clients.datadogpy')
+    def test_datadog_send(self):
+        client = get_client()
+        client.socket = FakeSocket()
+
+        eq_(list(client.socket.payloads), [])
+
+        client.incr('testing')
+        eq_(client.socket.recv(), 'testing:1|c')
+
+        client.decr('testing')
+        eq_(client.socket.recv(), 'testing:-1|c')
+
+        client.timing('testing', 8)
+        eq_(client.socket.recv(), 'testing:8|ms')
 
 
 class TestMetlogClient(TestCase):
